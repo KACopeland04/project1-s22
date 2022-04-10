@@ -3,11 +3,12 @@
 #creating a new user from form
 @app.route('/new-user')
 def create_user():
-    username_new = ""
-    password_new = sha256_crypt.encrypt("")
-    email_new = ""
-    first_name_new = ""
-    last_name_new = ""
+    user =  request.form
+    username_new = user['username']
+    password_new = sha256_crypt.encrypt(user['password'])
+    email_new = user['email']
+    first_name_new = user['first_name']
+    last_name_new = user['last_name']
 
     cur = g.conn.cursor()
     try:
@@ -18,6 +19,7 @@ def create_user():
     cur.close()
 
     return "Account created"
+    return redirect('/')
 
 #logging in
 @app.route('/')

@@ -72,7 +72,7 @@ margin-top: 12px;
  </style>
  <title>Login</title>
 {% block body %}
-<form action="/nuser" method="POST">
+<form action="/newuser/add" method="POST">
 <div class="login">
   <div class="login-screen">
     <div class="app-title">
@@ -80,20 +80,19 @@ margin-top: 12px;
     </div>
   <div class="login-form">
     <div class="control-group">
-        <input type="text" class="login-field" value="" placeholder="username" name="username">
-        <label class="login-field-icon fui-user" for="login-name"></label>
-    </div>
-    <div class="control-group">
-        <input type="password" class="login-field" value="" placeholder="password" name="password">
-        <label class="login-field-icon fui-lock" for="login-pass"></label>
-    </div>
-    <div class="control-group">
         <input type="text" class="login-field" value="" placeholder="first name" name="first_name">
-        <label class="login-field-icon fui-fname" for="login-fname"></label>
     </div>
     <div class="control-group">
         <input type="text" class="login-field" value="" placeholder="last name" name="last_name">
-        <label class="login-field-icon fui-lname" for="login-lname"></label>
+    </div>
+    <div class="control-group">
+      <input type="text" class="login-field" value="" placeholder="email" name="email">
+    </div>
+    <div class="control-group">
+      <input type="text" class="login-field" value="" placeholder="username" name="username">
+    </div>
+    <div class="control-group">
+      <input type="text" class="login-field" value="" placeholder="password" name="password">
     </div>
      <input type="submit" value="Create account" class="btn btn-primary btn-large btn-block">
    </div>
