@@ -1,0 +1,218 @@
+ <style>
+ * {
+box-sizing: border-box;
+}
+*:focus {
+outline: none;
+}
+body {
+font-family: Arial;
+background-color: #4893b3;
+padding: 50px;
+}
+.login {
+margin: 20px auto;
+width: 600px;
+}
+.login-screen {
+background-color: #FFF;
+padding: 20px;
+border-radius: 5px
+}
+.app-title {
+text-align: center;
+color: #777;
+}
+.login-form {
+text-align: center;
+}
+.control-group {
+margin-bottom: 10px;
+}
+input {
+text-align: center;
+background-color: #ECF0F1;
+border: 2px solid transparent;
+border-radius: 3px;
+font-size: 16px;
+font-weight: 200;
+padding: 10px 0;
+width: 550px;
+transition: border .5s;
+}
+input:focus {
+border: 2px solid #3498DB;
+box-shadow: none;
+}
+.btn {
+border: 2px solid transparent;
+background: #4893b3;
+color: #ffffff;
+font-size: 16px;
+line-height: 25px;
+padding: 10px 0;
+text-decoration: none;
+text-shadow: none;
+border-radius: 3px;
+box-shadow: none;
+transition: 0.25s;
+display: block;
+width: 550px;
+margin: 0 auto;
+}
+.btn:hover {
+background-color:#4876b3;;
+cursor: grab;
+}
+.dropdown {
+border: 2px solid transparent;
+background: #ECF0F1;
+color: #777;
+text-align: center;
+font-size: 16px;
+line-height: 25px;
+padding: 10px 0;
+text-decoration: none;
+text-shadow: none;
+border-radius: 3px;
+box-shadow: none;
+transition: 0.25s;
+display: block;
+width: 550px;
+margin: 0 auto;
+}
+.login-link {
+font-size: 12px;
+color: #444;
+display: block;
+margin-top: 12px;
+}  
+.btn-home {
+border: 2px solid transparent;
+background: transparent;
+color: #ffffff;
+font-size: 16px;
+line-height: 25px;
+padding: 10px 0;
+text-decoration: none;
+text-shadow: none;
+border-radius: 3px;
+box-shadow: none;
+transition: 0.25s;
+display: block;
+width: 250px;
+margin: 0 auto;
+}
+.btn-home:hover {
+background-color:#4893b3;
+cursor: grab;
+}
+.date-select {
+text-align: center;
+background-color: #ECF0F1;
+border: 2px solid transparent;
+font-family: Arial;
+border-radius: 3px;
+font-size: 16px;
+font-weight: 200;
+padding: 10px 0;
+width: 550px;
+transition: border .5s;
+}
+.date-select:hover {
+cursor: grab;
+}
+ </style>
+ <title>ReportEnvironmentalConcern</title>
+{% block body %}
+<form action="/enterdata" method="POST">
+<div class="login">
+  <div class="login-screen">
+    <div class="app-title">
+      <h1>Report an Environmental Concern</h1>
+    </div>
+  <div class="login-form">
+    <div class="control-group">
+        <input type="date" class="date-select" value="" placeholder="enter start date of event" name="date">
+    </div>
+    <div class="control-group">
+      <select name="DropDownList" id="state-select" class="dropdown">
+        <option value="" class="login-field" id="state">--Select the state in which the event occured--</option>
+          <option value="AL">AL</option>
+          <option value="AK">AK</option>
+          <option value="AZ">AZ</option>
+          <option value="AR">AR</option>
+          <option value="CA">CA</option>
+          <option value="CO">CO</option>
+          <option value="CT">CT</option>
+          <option value="DE">DE</option>
+          <option value="FL">FL</option>
+          <option value="GA">GA</option>
+          <option value="HI">HI</option>
+          <option value="ID">ID</option>
+          <option value="IL">IL</option>
+          <option value="IN">IN</option>
+          <option value="IA">IA</option>
+          <option value="KS">KS</option>
+          <option value="KY">KY</option>
+          <option value="LA">LA</option>
+          <option value="ME">ME</option>
+          <option value="MD">MD</option>
+          <option value="MA">MA</option>
+          <option value="MI">MI</option>
+          <option value="MN">MN</option>
+          <option value="MS">MS</option>
+          <option value="MO">MO</option>
+          <option value="MT">MT</option>
+          <option value="NE">NE</option>
+          <option value="NV">NV</option>
+          <option value="NH">NH</option>
+          <option value="NJ">NJ</option>
+          <option value="NM">NM</option>
+          <option value="NY">NY</option>
+          <option value="NC">NC</option>
+          <option value="ND">ND</option>
+          <option value="OH">OH</option>
+          <option value="OK">OK</option>
+          <option value="OR">OR</option>
+          <option value="PA">PA</option>
+          <option value="RI">RI</option>
+          <option value="SC">SC</option>
+          <option value="SD">SD</option>
+          <option value="TN">TN</option>
+          <option value="TX">TX</option>
+          <option value="UT">UT</option>
+          <option value="VT">VT</option>
+          <option value="VA">VA</option>
+          <option value="WA">WA</option>
+          <option value="WV">WV</option>
+          <option value="WI">WI</option>
+          <option value="WY">WY</option>
+      </select>
+    </div>
+    <script type="text/javascript">
+      function getOption() {
+          selectElement = document.querySelector('state');
+          output = selectElement.value;
+          document.getElementById("stateid").innerHTML = output
+      }
+    </script>
+    <input type="hidden" id = "stateid" name="StateName"/>
+    <div class="control-group">
+      <input type="number" step="0.000001" class="login-field" value="" placeholder="enter the latitude of the event" name="latitude">
+    </div>
+    <div class="control-group">
+      <input type="number" step="0.000001" class="login-field" value="" placeholder="enter the longitude of the event" name="longitude">
+    </div>
+    <div class="control-group">
+      <input type="text" class="login-field" value="" placeholder="input description of event (e.g., blue-green algal bloom in local lake)" name="description">
+  </div>
+     <input type="submit" value="Submit report" class="btn btn-primary btn-large btn-block" id="submit-data">
+   </div>
+  </div>
+ </div>
+</form>
+<form action="/">
+  <input type="submit" class="btn-home" value="Return to home"/>
+</form>
+{% endblock %}

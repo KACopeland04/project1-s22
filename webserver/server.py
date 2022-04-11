@@ -16,17 +16,23 @@ Read about it online.
 """
 
 import os
+import datetime 
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash, session, abort
 from passlib.hash import sha256_crypt
 from flask_cors import CORS
-from processdata import processdata
+from flask_socketio import SocketIO, emit
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 CORS(app)
+socketio = SocketIO(app)
 
+@socketio.on('disconnect')
+def disconnect_user():
+    print("here")
+    session.clear()
 
 # XXX: The Database URI should be in the format of: 
 #
@@ -46,22 +52,10 @@ DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
 DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2"
 
-
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
 engine = create_engine(DATABASEURI)
-
-
-# Here we create a test table and insert some values in it
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-
-
 
 @app.before_request
 def before_request():
@@ -90,7 +84,6 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-
 #
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
@@ -105,6 +98,7 @@ def teardown_request(exception):
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
 @app.route('/')
+        
 def index():
   """
   request is a special object that Flask provides to access web request information:
@@ -115,54 +109,44 @@ def index():
 
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
+  if not session.get('logged_in'):
+      return render_template('login.html')
+  else:  
+      # DEBUG: this is debugging code to see what request looks like
+      print(request.args)
 
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
+      #
+      # Flask uses Jinja templates, which is an extension to HTML where you can
+      # pass data to a template and dynamically generate HTML based on the data
+      # (you can think of it as simple PHP)
+      # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
+      #
+      # You can see an example template in templates/index.html
+      #
+      # context are the variables that are passed to the template.
+      # for example, "data" key in the context variable defined below will be 
+      # accessible as a variable in index.html:
+      #
+      #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
+      #     <div>{{data}}</div>
+      #     
+      #     # creates a <div> tag for each element in data
+      #     # will print: 
+      #     #
+      #     #   <div>grace hopper</div>
+      #     #   <div>alan turing</div>
+      #     #   <div>ada lovelace</div>
+      #     #
+      #     {% for n in data %}
+      #     <div>{{n}}</div>
+      #     {% endfor %}
+      #
 
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
-  for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
-  cursor.close()
-
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
-
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+      #
+      # render_template looks in the templates/ folder for files.
+      # for example, the below file reads template/index.html
+      #
+      return render_template("map.html")
 
 #
 # This is an example of a different path.  You can see it at
@@ -174,12 +158,12 @@ def index():
 #
 
 @app.route('/map')
-def another():
+def map():
   return render_template("map.html")
 
 @app.route('/selfreporteddata', methods=["GET"])
 def selfreportedData():
-  cursor = g.conn.execute("SELECT record_num, description, lat, lng FROM selfreporteddata LIMIT 10")
+  cursor = g.conn.execute("SELECT record_num, description, lat, lng FROM selfreporteddata ORDER BY date DESC LIMIT 10")
   points = {}
   for result in cursor:
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']]]
@@ -325,23 +309,89 @@ WHERE Water_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""
   print(states)
   return states
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1)';
-  g.conn.execute(text(cmd), name1 = name);
-  return redirect('/')
+#source: https://www.section.io/engineering-education/user-login-web-system/
 
+#load new user form
+@app.route('/newuser')
+def newuser():
+    return render_template("newuser.html")
 
-@app.route('/login')
+@app.route('/newuser/add', methods=['POST'])
+def add_newuser():
+    user =  request.form
+    username_new = user['username']
+    password_new = user['password']
+    email_new = user['email']
+    first_name_new = user['first_name']
+    last_name_new = user['last_name']
+
+    try: #note: protect from injection later
+        g.conn.execute('INSERT INTO Users (username, first_name, last_name, email, password) VALUES (%s, %s, %s, %s, %s)', (username_new, first_name_new, last_name_new, email_new, password_new))
+    except:
+        print("database entry failed")
+
+    print("account created!")
+    return redirect('/')
+
+#logging in
+@app.route('/login', methods=['POST'])
 def login():
-    abort(401)
-    this_is_never_executed()
+    login = request.form
+    account = False
+
+    username = login['username']
+    password = login['password']
+
+    cmd = 'SELECT password FROM Users WHERE username = (:username1)'
+    data = g.conn.execute(text(cmd), username1 = username).fetchone()[0]
+
+    print("PASSWORD")
+    print(password)
+    print("DATA")
+    print(data)
+    if password == data:
+        account = True
+
+    if account:
+        session.permanent = False
+        session['username'] = username
+        session['logged_in'] = True
+    else:
+        print('wrong password!')
+
+    return redirect('/')
+
+@app.route('/logout')
+def logout():
+    session['logged_in'] = False
+    return redirect('/')
+
+@app.route('/dataentry')
+def dataentry():
+  return render_template("dataentry.html")
+
+@app.route('/enterdata', methods=['POST'])
+def enterdata():
+    data =  request.form
+    date_split = data['date'].split('-')
+    date = datetime.date(int(date_split[0]), int(date_split[1]), int(date_split[2]))
+    lat = float(data['latitude'])
+    lon = float(data['longitude'])
+    description = data['description']
+    state = data['DropDownList']
+    numvotes = 0
+    contents = [description, date, numvotes, lat, lon, state, session['username'],]
+
+    try: #note: protect from injection later
+        g.conn.execute('INSERT INTO SelfReportedData (description, date, numvotes, lat, lng, abrv, username) VALUES (%s, %s, %s, %s, %s, %s, %s)', contents)
+    except Exception as e:
+        print(e)
+
+    return redirect('/')
 
 if __name__ == "__main__":
   import click
+  app.secret_key = 'super secret key'
 
   @click.command()
   @click.option('--debug', is_flag=True)
@@ -349,6 +399,7 @@ if __name__ == "__main__":
   @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
   def run(debug, threaded, host, port):
+    
     """
     This function handles command line parameters.
     Run the server using
