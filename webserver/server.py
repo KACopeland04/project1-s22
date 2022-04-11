@@ -16,14 +16,23 @@ Read about it online.
 """
 
 import os
+import datetime 
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash, session, abort
 #from flask_cors import CORS
 from passlib.hash import sha256_crypt
+from flask_socketio import SocketIO, emit
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
+
+socketio = SocketIO(app)
+
+@socketio.on('disconnect')
+def disconnect_user():
+    print("here")
+    session.clear()
 
 # XXX: The Database URI should be in the format of: 
 #
@@ -188,7 +197,6 @@ def newuser():
 
 @app.route('/newuser/add', methods=['POST'])
 def add_newuser():
-    print("in function")
     user =  request.form
     username_new = user['username']
     password_new = user['password']
@@ -224,6 +232,8 @@ def login():
         account = True
 
     if account:
+        session.permanent = False
+        session['username'] = username
         session['logged_in'] = True
     else:
         print('wrong password!')
@@ -235,13 +245,28 @@ def logout():
     session['logged_in'] = False
     return redirect('/')
 
-"""""
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
-"""
+@app.route('/dataentry')
+def dataentry():
+  return render_template("dataentry.html")
 
+@app.route('/enterdata', methods=['POST'])
+def enterdata():
+    data =  request.form
+    date_split = data['date'].split('-')
+    date = datetime.date(int(date_split[0]), int(date_split[1]), int(date_split[2]))
+    lat = float(data['latitude'])
+    lon = float(data['longitude'])
+    description = data['description']
+    state = data['DropDownList']
+    numvotes = 0
+    contents = [description, date, numvotes, lat, lon, state, session['username'],]
+
+    try: #note: protect from injection later
+        g.conn.execute('INSERT INTO SelfReportedData (description, date, numvotes, lat, lng, abrv, username) VALUES (%s, %s, %s, %s, %s, %s, %s)', contents)
+    except Exception as e:
+        print(e)
+
+    return redirect('/')
 
 if __name__ == "__main__":
   import click
