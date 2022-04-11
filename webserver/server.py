@@ -18,11 +18,14 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash, session, abort
+from passlib.hash import sha256_crypt
+from flask_cors import CORS
+from processdata import processdata
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
+CORS(app)
 
 
 # XXX: The Database URI should be in the format of: 
@@ -169,10 +172,158 @@ def index():
 # notice that the functio name is another() rather than index()
 # the functions for each app.route needs to have different names
 #
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
 
+@app.route('/map')
+def another():
+  return render_template("map.html")
+
+@app.route('/selfreporteddata', methods=["GET"])
+def selfreportedData():
+  cursor = g.conn.execute("SELECT record_num, description, lat, lng FROM selfreporteddata LIMIT 10")
+  points = {}
+  for result in cursor:
+    points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']]]
+  cursor.close()
+  return points
+
+@app.route('/naturaldisasters', methods=["GET"])
+def naturaldisastersData():
+  g.conn.execute("""CREATE OR REPLACE VIEW percentiles as
+  SELECT k, percentile_disc(k) within group (order by counts.count)
+  FROM( SELECT abrv, COUNT(*) as count
+  FROM naturaldisasters 
+  GROUP BY abrv) as counts, generate_series(0.00, 1, 0.33) as k
+  GROUP BY k""")
+  green = g.conn.execute("""SELECT abrv
+  FROM naturaldisasters
+  GROUP BY abrv
+  HAVING COUNT(*) < (SELECT percentile_disc FROM percentiles WHERE k = 0.33)""")
+  yellow = g.conn.execute("""SELECT abrv
+  FROM naturaldisasters
+  GROUP BY abrv
+  HAVING COUNT(*) >= (SELECT percentile_disc FROM percentiles WHERE k = 0.33)
+  AND COUNT(*) < (SELECT percentile_disc FROM percentiles WHERE k = 0.66)""")
+  red = g.conn.execute("""SELECT abrv
+  FROM naturaldisasters
+  GROUP BY abrv
+  HAVING COUNT(*) >= (SELECT percentile_disc FROM percentiles WHERE k = 0.66)""")
+  states = {}
+  for result in green:
+    states[result["abrv"]] =  0
+  green.close()
+  for result in yellow:
+    states[result["abrv"]] =  1
+  yellow.close()
+  for result in red:
+    states[result["abrv"]] =  2
+  red.close()
+  print(states)
+  return states
+
+@app.route('/temperature', methods=["GET"])
+def temperatureData():
+  g.conn.execute("""CREATE OR REPLACE VIEW temp_changes as 
+SELECT t1.abrv, t2.temp - t1.temp as Temp_Change
+FROM Temperature t1 INNER JOIN Temperature t2 on t1.abrv = t2.abrv
+WHERE t1.date = '2012-01-01' and t2.date = '2021-01-01'
+ORDER BY Temp_Change;
+
+CREATE OR REPLACE VIEW percentiles as
+SELECT k, PERCENTILE_CONT(k) within group (order by Temp_Change)
+FROM temp_changes, generate_series(0.00, 1, 0.33) as k
+GROUP BY k;""")
+  green = g.conn.execute("""SELECT abrv
+FROM temp_changes
+WHERE Temp_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
+  yellow = g.conn.execute("""SELECT abrv
+FROM temp_changes
+WHERE Temp_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
+AND Temp_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  red = g.conn.execute("""SELECT abrv
+FROM temp_changes
+WHERE Temp_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  states = {}
+  for result in green:
+    states[result["abrv"]] =  0
+  green.close()
+  for result in yellow:
+    states[result["abrv"]] =  1
+  yellow.close()
+  for result in red:
+    states[result["abrv"]] =  2
+  red.close()
+  print(states)
+  return states
+
+@app.route('/air', methods=["GET"])
+def airData():
+  g.conn.execute("""CREATE OR REPLACE VIEW air_changes as 
+SELECT a1.abrv, a2.aqi - a1.aqi Air_Change
+FROM AirQuality a1 INNER JOIN AirQuality a2 on a1.abrv = a2.abrv
+WHERE a1.date = '2012-01-01' and a2.date = '2021-01-01'
+ORDER BY Air_Change;
+
+CREATE OR REPLACE VIEW percentiles as
+SELECT k, PERCENTILE_CONT(k) within group (order by Air_Change)
+FROM Air_changes, generate_series(0.00, 1, 0.33) as k
+GROUP BY k;""")
+  green = g.conn.execute("""SELECT abrv
+FROM air_changes
+WHERE Air_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
+  yellow = g.conn.execute("""SELECT abrv
+FROM air_changes
+WHERE Air_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
+AND Air_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  red = g.conn.execute("""SELECT abrv
+FROM air_changes
+WHERE Air_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  states = {}
+  for result in green:
+    states[result["abrv"]] =  0
+  green.close()
+  for result in yellow:
+    states[result["abrv"]] =  1
+  yellow.close()
+  for result in red:
+    states[result["abrv"]] =  2
+  red.close()
+  print(states)
+  return states
+
+@app.route('/water', methods=["GET"])
+def waterData():
+  g.conn.execute("""CREATE OR REPLACE VIEW water_changes as 
+SELECT w1.abrv, w2.concentration - w1.concentration as Water_Change
+FROM waterquality w1 INNER JOIN waterquality w2 on w1.abrv = w2.abrv
+WHERE w1.date = '2012-01-01' and w2.date = '2020-01-01'
+ORDER BY Water_Change;
+
+CREATE OR REPLACE VIEW percentiles as
+SELECT k, PERCENTILE_CONT(k) within group (order by Water_Change)
+FROM Water_changes, generate_series(0.00, 1, 0.33) as k
+GROUP BY k;""")
+  green = g.conn.execute("""SELECT abrv
+FROM water_changes
+WHERE Water_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
+  yellow = g.conn.execute("""SELECT abrv
+FROM water_changes
+WHERE Water_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
+AND Water_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  red = g.conn.execute("""SELECT abrv
+FROM water_changes
+WHERE Water_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+  states = {}
+  for result in green:
+    states[result["abrv"]] =  0
+  green.close()
+  for result in yellow:
+    states[result["abrv"]] =  1
+  yellow.close()
+  for result in red:
+    states[result["abrv"]] =  2
+  red.close()
+  print(states)
+  return states
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -188,7 +339,6 @@ def add():
 def login():
     abort(401)
     this_is_never_executed()
-
 
 if __name__ == "__main__":
   import click

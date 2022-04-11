@@ -17,7 +17,7 @@
     {% endfor %}
   </div>
 
-<p><a href="/another">Go to the other page</a></p>
+<p><a href="/map">Go to the other page</a></p>
 
 <form method="POST" action="/add">
 <p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
@@ -25,5 +25,18 @@
 
 </body>
 
+<div id="map"></div>
+<script type="text/javascript" src="index.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=key"></script>
+<script>
+    var url = `http://<host_name>:<port_no>/displaylocations`;
+    $.ajax({
+        type: `GET`,
+        url: url,
+        success: function(response) {
+            initMap(response);
+        }
+    });
+</script>
 
 </html>
