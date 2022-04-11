@@ -7,7 +7,7 @@ outline: none;
 }
 body {
 font-family: Arial;
-background-color: #E55423;
+background-color: #4893b3;
 padding: 50px;
 }
 .login {
@@ -46,7 +46,7 @@ box-shadow: none;
 }
 .btn {
 border: 2px solid transparent;
-background: #E55423;
+background: #4893b3;
 color: #ffffff;
 font-size: 16px;
 line-height: 25px;
@@ -61,7 +61,8 @@ width: 550px;
 margin: 0 auto;
 }
 .btn:hover {
-background-color: #E55423;
+background-color:#4876b3;;
+cursor: grab;
 }
 .dropdown {
 border: 2px solid transparent;
@@ -86,6 +87,41 @@ color: #444;
 display: block;
 margin-top: 12px;
 }  
+.btn-home {
+border: 2px solid transparent;
+background: transparent;
+color: #ffffff;
+font-size: 16px;
+line-height: 25px;
+padding: 10px 0;
+text-decoration: none;
+text-shadow: none;
+border-radius: 3px;
+box-shadow: none;
+transition: 0.25s;
+display: block;
+width: 250px;
+margin: 0 auto;
+}
+.btn-home:hover {
+background-color:#4893b3;
+cursor: grab;
+}
+.date-select {
+text-align: center;
+background-color: #ECF0F1;
+border: 2px solid transparent;
+font-family: Arial;
+border-radius: 3px;
+font-size: 16px;
+font-weight: 200;
+padding: 10px 0;
+width: 550px;
+transition: border .5s;
+}
+.date-select:hover {
+cursor: grab;
+}
  </style>
  <title>ReportEnvironmentalConcern</title>
 {% block body %}
@@ -97,7 +133,7 @@ margin-top: 12px;
     </div>
   <div class="login-form">
     <div class="control-group">
-        <input type="date" class="login-field" value="" placeholder="enter start date of event" name="date">
+        <input type="date" class="date-select" value="" placeholder="enter start date of event" name="date">
     </div>
     <div class="control-group">
       <select name="DropDownList" id="state-select" class="dropdown">
@@ -175,5 +211,8 @@ margin-top: 12px;
    </div>
   </div>
  </div>
+</form>
+<form action="/">
+  <input type="submit" class="btn-home" value="Return to home"/>
 </form>
 {% endblock %}

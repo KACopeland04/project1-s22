@@ -7,7 +7,7 @@ outline: none;
 }
 body {
 font-family: Arial;
-background-color: #E55423;
+background-color: #4893b3;
 padding: 50px;
 }
 .login {
@@ -46,7 +46,7 @@ box-shadow: none;
 }
 .btn {
 border: 2px solid transparent;
-background: #E55423;
+background: #4893b3;
 color: #ffffff;
 font-size: 16px;
 line-height: 25px;
@@ -61,7 +61,8 @@ width: 250px;
 margin: 0 auto;
 }
 .btn:hover {
-background-color: #E55423;
+background-color:#4876b3;
+cursor: grab;
 }
 .login-link {
 font-size: 12px;
@@ -69,6 +70,26 @@ color: #444;
 display: block;
 margin-top: 12px;
 }  
+.btn-login {
+border: 2px solid transparent;
+background: transparent;
+color: #ffffff;
+font-size: 16px;
+line-height: 25px;
+padding: 10px 0;
+text-decoration: none;
+text-shadow: none;
+border-radius: 3px;
+box-shadow: none;
+transition: 0.25s;
+display: block;
+width: 250px;
+margin: 0 auto;
+}
+.btn-login:hover {
+background-color:#4893b3;
+cursor: grab;
+}
  </style>
  <title>NewUser</title>
 {% block body %}
@@ -98,5 +119,8 @@ margin-top: 12px;
    </div>
   </div>
  </div>
+</form>
+<form action="/">
+  <input type="submit" class="btn-login" value="Return to login"/>
 </form>
 {% endblock %}
