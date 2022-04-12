@@ -1,3 +1,21 @@
+<style>
+    table {
+    background-color: #fd9;
+    }
+    tbody {
+        background-color: #fff;
+        height: 150px;
+        overflow: auto;
+    }
+    td {
+        padding: 3px 10px;
+    }
+    thead > tr, tbody{ display:block;}
+    #entries tr.clicked { background: #ccd; }
+    #entries tr.highlight { background: #eef; }
+</style>
+
+
 <!DOCTYPE html>
 <!-- <html>
 <head>
@@ -187,7 +205,7 @@
 
         <div id="legend_label" style="position: absolute;top:580px;left:375px; display: none;"><p>Percentile</p></div>
 
-        <div id="srd" style="position: absolute; top: 200px; left:0px; display:none;">
+        <div id="srd" style="position: absolute; top: 600px; right:25px; display:none;">
             <table id="srdtable">
             <tr>
               <th>Description</th>
