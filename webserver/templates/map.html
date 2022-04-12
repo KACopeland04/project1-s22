@@ -86,13 +86,22 @@
                     data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4]]);
             });
             selfreportedTable(data_array);
-            console.log(data_array)
-            datatable = google.visualization.arrayToDataTable(data_array[0],data_array[1], data_array[2],data_array[3]);
+            console.log(data_array);
+
+            var geo_data = []
+
+            data_array.forEach((element) => { 
+                geo_data.push(element.slice(0,4))
+            });
+
+            console.log(geo_data);
+            
+            datatable = google.visualization.arrayToDataTable(geo_data);
             var options = {
                 region: 'US',
                 displayMode: 'markers',
                 colorAxis: {colors:['black', 'black']},
-                sizeAxis: {minSize: 4, maxSize: 4},
+                sizeAxis: {minSize: 2, maxSize: 4},
                 datalessRegionColor: 'transparent',
                 backgroundColor: 'transparent',
                 legend: 'none'
@@ -109,6 +118,12 @@
         // Find a <table> element with id="myTable":
         var table = document.getElementById("srdtable");
         var tablediv = document.getElementById("srd");
+
+        var rowCount = table.rows.length;
+        var tableHeaderRowCount = 1;
+        for (var i = tableHeaderRowCount; i < rowCount; i++) {
+                table.deleteRow(tableHeaderRowCount);
+        }
 
         data.slice(1).forEach((element) => { 
 
