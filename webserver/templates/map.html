@@ -81,18 +81,13 @@
             .then(data => {
                 console.log(data);
                 var i = 0;
-                var data_array = [['lat','lng', 'Description', 'size']];
+                var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv']];
                 Object.entries(data).forEach(([key, value]) => {
-                    data_array.push([value[1][0], value[1][1], value[0], i]);
-                    if (i == 1) {
-                        i = 0;
-                    }
-                    else {
-                        i = 1;
-                    }
+                    data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4]]);
             });
+            selfreportedTable(data_array);
             console.log(data_array)
-            datatable = google.visualization.arrayToDataTable(data_array);
+            datatable = google.visualization.arrayToDataTable(data_array[0],data_array[1], data_array[2],data_array[3]);
             var options = {
                 region: 'US',
                 displayMode: 'markers',
@@ -107,6 +102,37 @@
         });
     }
 
+    function selfreportedTable(data){
+
+        console.log("hello")     
+
+        // Find a <table> element with id="myTable":
+        var table = document.getElementById("srdtable");
+        var tablediv = document.getElementById("srd");
+
+        data.slice(1).forEach((element) => { 
+
+            console.log(element);
+            // Create an empty <tr> element
+            var row = table.insertRow(-1);
+
+            // Insert new cells
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+            var cell4 = row.insertCell(3);
+
+            cell1.innerHTML = element[2];
+            cell2.innerHTML = element[4];
+            cell3.innerHTML = element[5];
+            cell4.innerHTML = element[3];
+
+        });
+
+        tablediv.style.display = "block";
+
+    }
+
     function processForm(e) {
         e.preventDefault();
         console.log(document.getElementById('continuous-select').value);
@@ -117,6 +143,7 @@
 
         var markers = document.getElementById("self_div");
         var label = document.getElementById("legend_label");
+        var table = document.getElementById("srdtable");
 
         if (continuous.length>0) {
             google.charts.setOnLoadCallback(drawRegionsMap(continuous));
@@ -132,6 +159,7 @@
         }
         else{
             markers.style.display = "none";
+            table.style.display = "none";
         }
         return true
     }
@@ -143,6 +171,17 @@
         <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 250px;"></div>
 
         <div id="legend_label" style="position: absolute;top:580px;left:375px; display: none;"><p>Percentile</p></div>
+
+        <div id="srd" style="position: absolute; top: 200px; left:0px; display:none;">
+            <table id="srdtable">
+            <tr>
+              <th>Description</th>
+              <th>Date</th>
+              <th>State</th>
+              <th>Votes</th>
+            </tr>
+            </table>
+        </div>
 
         <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:450px">
             <select name="contdata" id="continuous-select" class="dropdown">
