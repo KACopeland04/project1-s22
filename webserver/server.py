@@ -146,7 +146,7 @@ def index():
       # render_template looks in the templates/ folder for files.
       # for example, the below file reads template/index.html
       #
-      return render_template("map.html")
+      return redirect('/map')
 
 #
 # This is an example of a different path.  You can see it at
@@ -161,9 +161,28 @@ def index():
 def map():
   return render_template("map.html")
 
+START_DATE = '2012-01-01'
+END_DATE = '2020-01-01'
+
+@app.route('/setDates', methods=["POST"])
+def setDates():
+  data =  request.form
+  start_date_split = data['startdate'].split('-')
+  global START_DATE
+  global END_DATE
+  START_DATE = datetime.date(int(start_date_split[0]), 1, 1)
+  end_date_split = data['enddate'].split('-')
+  END_DATE = datetime.date(int(end_date_split[0]), 1, 1)
+  return redirect('/map')
+
 @app.route('/selfreporteddata', methods=["GET"])
 def selfreportedData():
-  cursor = g.conn.execute("SELECT record_num, description, lat, lng FROM selfreporteddata ORDER BY date DESC LIMIT 10")
+  print(START_DATE, END_DATE)
+  cursor = g.conn.execute("""SELECT record_num, description, lat, lng 
+  FROM selfreporteddata 
+  WHERE date > %s AND date < %s
+  ORDER BY date 
+  DESC LIMIT 10""", START_DATE, END_DATE)
   points = {}
   for result in cursor:
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']]]
@@ -172,141 +191,98 @@ def selfreportedData():
 
 @app.route('/naturaldisasters', methods=["GET"])
 def naturaldisastersData():
-  g.conn.execute("""CREATE OR REPLACE VIEW percentiles as
-  SELECT k, percentile_disc(k) within group (order by counts.count)
-  FROM( SELECT abrv, COUNT(*) as count
-  FROM naturaldisasters 
-  GROUP BY abrv) as counts, generate_series(0.00, 1, 0.33) as k
-  GROUP BY k""")
-  green = g.conn.execute("""SELECT abrv
-  FROM naturaldisasters
-  GROUP BY abrv
-  HAVING COUNT(*) < (SELECT percentile_disc FROM percentiles WHERE k = 0.33)""")
-  yellow = g.conn.execute("""SELECT abrv
-  FROM naturaldisasters
-  GROUP BY abrv
-  HAVING COUNT(*) >= (SELECT percentile_disc FROM percentiles WHERE k = 0.33)
-  AND COUNT(*) < (SELECT percentile_disc FROM percentiles WHERE k = 0.66)""")
-  red = g.conn.execute("""SELECT abrv
-  FROM naturaldisasters
-  GROUP BY abrv
-  HAVING COUNT(*) >= (SELECT percentile_disc FROM percentiles WHERE k = 0.66)""")
+  print(START_DATE, END_DATE)
+  g.conn.execute("""CREATE OR REPLACE VIEW nd_counts as
+SELECT naturaldisasters.abrv, COUNT(*) as count
+FROM naturaldisasters 
+WHERE date > %s AND date < %s
+GROUP BY naturaldisasters.abrv;
+CREATE OR REPLACE VIEW percentiles as
+SELECT k, percentile_cont(k) within group (order by nd_counts.count)
+FROM nd_counts, generate_series(0.00, 1, 0.05) as k
+GROUP BY k;""", START_DATE, END_DATE)
+  nd_perc = g.conn.execute("""SELECT * 
+FROM nd_counts t, percentiles p
+WHERE ABS(t.count - p.percentile_cont) = 
+(SELECT MIN(ABS(t.count - percentile_cont)) FROM temp_changes t1, percentiles p2 WHERE t.abrv = t1.abrv)
+""")
   states = {}
-  for result in green:
-    states[result["abrv"]] =  0
-  green.close()
-  for result in yellow:
-    states[result["abrv"]] =  1
-  yellow.close()
-  for result in red:
-    states[result["abrv"]] =  2
-  red.close()
-  print(states)
+  for result in nd_perc:
+    states[result["abrv"]] =  int(result["k"]*100)
+  nd_perc.close()
   return states
+
 
 @app.route('/temperature', methods=["GET"])
 def temperatureData():
+  print(START_DATE, END_DATE)
   g.conn.execute("""CREATE OR REPLACE VIEW temp_changes as 
 SELECT t1.abrv, t2.temp - t1.temp as Temp_Change
 FROM Temperature t1 INNER JOIN Temperature t2 on t1.abrv = t2.abrv
-WHERE t1.date = '2012-01-01' and t2.date = '2021-01-01'
+WHERE t1.date = %s and t2.date = %s
 ORDER BY Temp_Change;
 
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Temp_Change)
-FROM temp_changes, generate_series(0.00, 1, 0.33) as k
-GROUP BY k;""")
-  green = g.conn.execute("""SELECT abrv
-FROM temp_changes
-WHERE Temp_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
-  yellow = g.conn.execute("""SELECT abrv
-FROM temp_changes
-WHERE Temp_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
-AND Temp_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
-  red = g.conn.execute("""SELECT abrv
-FROM temp_changes
-WHERE Temp_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+FROM temp_changes, generate_series(0.00, 1, 0.05) as k
+GROUP BY k;""", START_DATE, END_DATE)
+  temp_perc = g.conn.execute("""SELECT * 
+FROM temp_changes t, percentiles p
+WHERE ABS(t.Temp_Change - percentile_cont) = 
+(SELECT MIN(ABS(t.Temp_Change - percentile_cont)) FROM temp_changes t1, percentiles p2 WHERE t.abrv = t1.abrv)
+""")
   states = {}
-  for result in green:
-    states[result["abrv"]] =  0
-  green.close()
-  for result in yellow:
-    states[result["abrv"]] =  1
-  yellow.close()
-  for result in red:
-    states[result["abrv"]] =  2
-  red.close()
-  print(states)
+  for result in temp_perc:
+    states[result["abrv"]] =  int(result["k"]*100)
+  temp_perc.close()
   return states
 
 @app.route('/air', methods=["GET"])
 def airData():
+  print(START_DATE, END_DATE)
   g.conn.execute("""CREATE OR REPLACE VIEW air_changes as 
 SELECT a1.abrv, a2.aqi - a1.aqi Air_Change
 FROM AirQuality a1 INNER JOIN AirQuality a2 on a1.abrv = a2.abrv
-WHERE a1.date = '2012-01-01' and a2.date = '2021-01-01'
+WHERE a1.date = %s and a2.date = %s
 ORDER BY Air_Change;
 
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Air_Change)
-FROM Air_changes, generate_series(0.00, 1, 0.33) as k
-GROUP BY k;""")
-  green = g.conn.execute("""SELECT abrv
-FROM air_changes
-WHERE Air_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
-  yellow = g.conn.execute("""SELECT abrv
-FROM air_changes
-WHERE Air_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
-AND Air_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
-  red = g.conn.execute("""SELECT abrv
-FROM air_changes
-WHERE Air_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+FROM Air_changes, generate_series(0.00, 1, 0.05) as k
+GROUP BY k;""", START_DATE, END_DATE)
+  air_perc = g.conn.execute("""SELECT * 
+FROM air_changes t, percentiles p
+WHERE ABS(t.Air_Change - percentile_cont) = 
+(SELECT MIN(ABS(t.Air_Change - percentile_cont)) FROM air_changes t1, percentiles p2 WHERE t.abrv = t1.abrv)
+""")
   states = {}
-  for result in green:
-    states[result["abrv"]] =  0
-  green.close()
-  for result in yellow:
-    states[result["abrv"]] =  1
-  yellow.close()
-  for result in red:
-    states[result["abrv"]] =  2
-  red.close()
-  print(states)
+  for result in air_perc:
+    states[result["abrv"]] =  int(result["k"]*100)
+  air_perc.close()
   return states
 
 @app.route('/water', methods=["GET"])
 def waterData():
+  print(START_DATE, END_DATE)
   g.conn.execute("""CREATE OR REPLACE VIEW water_changes as 
 SELECT w1.abrv, w2.concentration - w1.concentration as Water_Change
 FROM waterquality w1 INNER JOIN waterquality w2 on w1.abrv = w2.abrv
-WHERE w1.date = '2012-01-01' and w2.date = '2020-01-01'
+WHERE w1.date = %s and w2.date = %s
 ORDER BY Water_Change;
 
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Water_Change)
-FROM Water_changes, generate_series(0.00, 1, 0.33) as k
-GROUP BY k;""")
-  green = g.conn.execute("""SELECT abrv
-FROM water_changes
-WHERE Water_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.33)""")
-  yellow = g.conn.execute("""SELECT abrv
-FROM water_changes
-WHERE Water_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.33) 
-AND Water_Change < (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
-  red = g.conn.execute("""SELECT abrv
-FROM water_changes
-WHERE Water_Change >= (SELECT percentile_cont FROM percentiles WHERE k = 0.66)""")
+FROM Water_changes, generate_series(0.00, 1, 0.05) as k
+GROUP BY k;""",START_DATE, END_DATE)
+  water_perc = g.conn.execute("""SELECT * 
+FROM water_changes t, percentiles p
+WHERE ABS(t.Water_Change - percentile_cont) = 
+(SELECT MIN(ABS(t.Water_Change - percentile_cont)) FROM water_changes t1, percentiles p2 WHERE t.abrv = t1.abrv)
+""")
   states = {}
-  for result in green:
-    states[result["abrv"]] =  0
-  green.close()
-  for result in yellow:
-    states[result["abrv"]] =  1
-  yellow.close()
-  for result in red:
-    states[result["abrv"]] =  2
-  red.close()
-  print(states)
+  for result in water_perc:
+    states[result["abrv"]] =  int(result["k"]*100)
+  water_perc.close()
   return states
 
 #source: https://www.section.io/engineering-education/user-login-web-system/
@@ -325,7 +301,7 @@ def add_newuser():
     first_name_new = user['first_name']
     last_name_new = user['last_name']
 
-    try: #note: protect from injection later
+    try: 
         g.conn.execute('INSERT INTO Users (username, first_name, last_name, email, password) VALUES (%s, %s, %s, %s, %s)', (username_new, first_name_new, last_name_new, email_new, password_new))
     except:
         print("database entry failed")

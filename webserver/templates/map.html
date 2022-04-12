@@ -20,16 +20,35 @@
 <html>
 <head runat="server">
     <title></title>
+    
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load('current', {
         'packages':['geochart'],
         // Note: you will need to get a mapsApiKey for your project.
         // See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
-        'mapsApiKey': 'map_api_key'
         });
-        google.charts.setOnLoadCallback(drawRegionsMap("temperature"));
-        google.charts.setOnLoadCallback(drawMarkersMap);
+
+        google.charts.setOnLoadCallback(blankChart);
+
+        function blankChart() {
+
+            data = google.visualization.arrayToDataTable([
+            ['State', 'dummy'],
+            ['', 0],
+            ]);
+
+            var options = {};
+                options['region'] = 'US';
+                options['dataMode'] = 'markers';
+                options['resolution'] = 'provinces';
+                options['legend'] = 'none';
+
+            var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
+
+            chart.draw(data, options);
+
+        }
 
         function drawRegionsMap(datafunction) {
             fetch("/"+datafunction)
@@ -45,17 +64,18 @@
                 var options = {};
                 options['region'] = 'US';
                 options['colors'] = ['green', 'yellow', 'red']; 
-                options['values'] =  [0, 1, 2]
+                options['values'] =  [0, 50, 100]
                 options['dataMode'] = 'markers';
                 options['resolution'] = 'provinces';
 
                 var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
 
                 chart.draw(datatable, options);
-                });
+            });
         }
 
         function drawMarkersMap() {
+            console.log("hello")
             fetch("/selfreporteddata")
             .then(data => data.json())
             .then(data => {
@@ -87,15 +107,69 @@
         });
     }
 
+    function processForm(e) {
+        e.preventDefault();
+        console.log(document.getElementById('continuous-select').value);
+        console.log(document.getElementById('selfreporteddata').checked);
+
+        continuous = document.getElementById('continuous-select').value;
+        selfreported = document.getElementById('selfreporteddata').checked;
+
+        var markers = document.getElementById("self_div");
+        var label = document.getElementById("legend_label");
+
+        if (continuous.length>0) {
+            google.charts.setOnLoadCallback(drawRegionsMap(continuous));
+            label.style.display = "block";
+        }
+        else{
+            label.style.display = "none";
+            google.charts.setOnLoadCallback(blankChart())
+        }
+        if(selfreported){
+            markers.style.display = "block";
+            google.charts.setOnLoadCallback(drawMarkersMap);
+        }
+        else{
+            markers.style.display = "none";
+        }
+        return true
+    }
    </script>
 </head>
     <body>
-        <div id="regions_div" style="width: 900px; height: 500px; position: absolute; top: 0px; left: 0px;"></div>
-        <div id="self_div" style="width: 900px; height: 500px; position: absolute; top: 0px; left: 0px;"></div>
-        <form action="/dataentry" style="position: absolute; top: 650px; left: 0px;">
+        <div id="regions_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 250px;"></div>
+
+        <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 250px;"></div>
+
+        <div id="legend_label" style="position: absolute;top:580px;left:375px; display: none;"><p>Percentile</p></div>
+
+        <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:450px">
+            <select name="contdata" id="continuous-select" class="dropdown">
+                  <option value="" class="data-field" id="type" name="type">--Select the Type of Data and Dates You Want to See--</option>
+                  <option value="water">Water Quality</option>
+                  <option value="air">Air Quality</option>
+                  <option value="naturaldisasters">Natural Disasters</option>
+                  <option value="temperature">Temperature</option>
+            </select>
+            <input type="checkbox" id="selfreporteddata" name="selfreporteddata">
+            <label for="selfreporteddata">Self Reported Data</label>
+            <br><br>
+            <input type="submit"></button>
+        </form>
+
+        <form action="/setDates" method="POST" style = "position: absolute; top: 725px; left:450px">
+            <input type="date" class="date-select" value="" placeholder="Start Date" name="startdate">
+            <input type="date" class="date-select" value="" placeholder="End Date" name="enddate">
+            <br><br>
+            <input type="submit" value="Set Dates"></button>
+        </form>
+
+        <form action="/dataentry" style="position: absolute; top: 100px; right: 25px;">
             <input type="submit" value="Report an environmental issue/concern"/>
           </form>
-        <form action="/logout" style="position: absolute; top: 600px; left: 0px;">
+
+        <form action="/logout" style="position: absolute; top: 50px; right: 25px;">
             <input type="submit" value="Logout"/>
           </form>
           
