@@ -91,6 +91,11 @@ margin: 0 auto;
   cursor: grab;
   background-color: #ffffffdf;
 }
+.logo{ 
+	position:fixed; 
+	top:0; 
+	left:0; 
+} 
  </style>
  <title>Login</title>
 {% block body %}
@@ -117,4 +122,7 @@ margin: 0 auto;
 <form action="/newuser">
   <input type="submit" class="btn-newuser" value="Create new account"/>
 </form>
+<div id="logo"> 
+	<img src="/../images/logo.png"> 
+</div>
 {% endblock %}

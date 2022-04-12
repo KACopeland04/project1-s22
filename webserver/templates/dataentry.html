@@ -122,6 +122,11 @@ transition: border .5s;
 .date-select:hover {
 cursor: grab;
 }
+.logo{ 
+	position:fixed; 
+	top:0; 
+	left:0; 
+} 
  </style>
  <title>ReportEnvironmentalConcern</title>
 {% block body %}
@@ -215,4 +220,7 @@ cursor: grab;
 <form action="/">
   <input type="submit" class="btn-home" value="Return to home"/>
 </form>
+<div id="logo"> 
+	<img src="/../images/logo.png"> 
+</div> 
 {% endblock %}

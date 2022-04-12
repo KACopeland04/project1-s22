@@ -90,6 +90,11 @@ margin: 0 auto;
 background-color:#4893b3;
 cursor: grab;
 }
+.logo{ 
+	position:fixed; 
+	top:0; 
+	left:0; 
+} 
  </style>
  <title>NewUser</title>
 {% block body %}
@@ -123,4 +128,7 @@ cursor: grab;
 <form action="/">
   <input type="submit" class="btn-login" value="Return to login"/>
 </form>
+<div id="logo"> 
+	<img src="/../images/logo.png"> 
+</div>
 {% endblock %}
