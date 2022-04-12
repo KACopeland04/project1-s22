@@ -95,8 +95,22 @@ cursor: grab;
 	top:0; 
 	left:0; 
 } 
+
+.flashes{
+  background-color:red;
+}
+
  </style>
  <title>NewUser</title>
+ {% with messages = get_flashed_messages() %}
+ {% if messages %}
+   <div class=flashes>
+   {% for message in messages %}
+     <p>{{ message }}</p>
+   {% endfor %}
+   </div>
+ {% endif %}
+{% endwith %}
 {% block body %}
 <form action="/newuser/add" method="POST">
 <div class="login">

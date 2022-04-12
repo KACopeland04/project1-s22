@@ -29,6 +29,10 @@ text-align: center;
 .control-group {
 margin-bottom: 10px;
 }
+.flashes{
+  background-color:red;
+}
+
 input {
 text-align: center;
 background-color: #ECF0F1;
@@ -98,6 +102,17 @@ margin: 0 auto;
 } 
  </style>
  <title>Login</title>
+ 
+ {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div id = "alerts" class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 {% block body %}
 <form action="/login" method="POST">
 <div class="login">
