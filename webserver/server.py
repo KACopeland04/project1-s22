@@ -23,6 +23,7 @@ from flask import Flask, request, render_template, g, redirect, Response, jsonif
 from passlib.hash import sha256_crypt
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
+from sqlalchemy.exc import SQLAlchemyError
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -310,9 +311,11 @@ def add_newuser():
 
     try: 
         g.conn.execute('INSERT INTO Users (username, first_name, last_name, email, password) VALUES (%s, %s, %s, %s, %s)', (username_new, first_name_new, last_name_new, email_new, password_new))
-    except:
+    except SQLAlchemyError as e:
         print("database entry failed")
-
+        error = str(e.__dict__['orig'])
+        flash(error)
+        return redirect('/newuser')
     print("account created!")
     return redirect('/')
 
@@ -326,7 +329,17 @@ def login():
     password = login['password']
 
     cmd = 'SELECT password FROM Users WHERE username = (:username1)'
-    data = g.conn.execute(text(cmd), username1 = username).fetchone()[0]
+    try:
+      g.conn.execute(text(cmd), username1 = username).fetchone()
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        return error
+      
+    try:
+      data = g.conn.execute(text(cmd), username1 = username).fetchone()[0]
+    except:
+      flash('No Account Found')
+      return redirect('/')
 
     print("PASSWORD")
     print(password)
@@ -340,7 +353,8 @@ def login():
         session['username'] = username
         session['logged_in'] = True
     else:
-        print('wrong password!')
+      flash('Wrong Password')
+      return redirect('/')
 
     return redirect('/')
 
@@ -356,19 +370,25 @@ def dataentry():
 @app.route('/enterdata', methods=['POST'])
 def enterdata():
     data =  request.form
-    date_split = data['date'].split('-')
-    date = datetime.date(int(date_split[0]), int(date_split[1]), int(date_split[2]))
-    lat = float(data['latitude'])
-    lon = float(data['longitude'])
-    description = data['description']
-    state = data['DropDownList']
-    numvotes = 0
-    contents = [description, date, numvotes, lat, lon, state, session['username'],]
+    try:
+      date_split = data['date'].split('-')
+      date = datetime.date(int(date_split[0]), int(date_split[1]), int(date_split[2]))
+      lat = float(data['latitude'])
+      lon = float(data['longitude'])
+      description = data['description']
+      state = data['DropDownList']
+      numvotes = 0
+      contents = [description, date, numvotes, lat, lon, state, session['username'],]
+    except:
+      flash('Missing Fields or Invalid Input')
+      return redirect('/dataentry')
 
-    try: #note: protect from injection later
+    try: 
         g.conn.execute('INSERT INTO SelfReportedData (description, date, numvotes, lat, lng, abrv, username) VALUES (%s, %s, %s, %s, %s, %s, %s)', contents)
-    except Exception as e:
-        print(e)
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        flash(error)
+        return redirect('/dataentry')
 
     return redirect('/')
 

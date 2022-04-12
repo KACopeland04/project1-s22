@@ -176,7 +176,7 @@
 
         var markers = document.getElementById("self_div");
         var label = document.getElementById("legend_label");
-        var table = document.getElementById("srdtable");
+        var tablediv = document.getElementById("srd");
 
         if (continuous.length>0) {
             google.charts.setOnLoadCallback(drawRegionsMap(continuous));
@@ -192,7 +192,7 @@
         }
         else{
             markers.style.display = "none";
-            table.style.display = "none";
+            tablediv.style.display = "none";
         }
         return true
     }
