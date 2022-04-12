@@ -161,8 +161,8 @@ def index():
 def map():
   return render_template("map.html")
 
-START_DATE = '2012-01-01'
-END_DATE = '2020-01-01'
+START_DATE = datetime.date(2012, 1, 1)
+END_DATE = datetime.date(2020, 1, 1)
 
 @app.route('/setDates', methods=["POST"])
 def setDates():
@@ -170,9 +170,9 @@ def setDates():
   start_date_split = data['startdate'].split('-')
   global START_DATE
   global END_DATE
-  START_DATE = datetime.date(int(start_date_split[0]), 1, 1)
+  START_DATE = datetime.date(int(start_date_split[0]), int(start_date_split[1]), int(start_date_split[2]))
   end_date_split = data['enddate'].split('-')
-  END_DATE = datetime.date(int(end_date_split[0]), 1, 1)
+  END_DATE = datetime.date(int(end_date_split[0]), int(end_date_split[1]), int(end_date_split[2]))
   return redirect('/map')
 
 @app.route('/selfreporteddata', methods=["GET"])
@@ -180,9 +180,9 @@ def selfreportedData():
   print(START_DATE, END_DATE)
   cursor = g.conn.execute("""SELECT record_num, description, lat, lng 
   FROM selfreporteddata 
-  WHERE date > %s AND date < %s
-  ORDER BY date 
-  DESC LIMIT 10""", START_DATE, END_DATE)
+  WHERE date >= %s AND date <= %s
+  ORDER BY date DESC 
+  LIMIT 10""", START_DATE, END_DATE)
   points = {}
   for result in cursor:
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']]]
@@ -195,7 +195,7 @@ def naturaldisastersData():
   g.conn.execute("""CREATE OR REPLACE VIEW nd_counts as
 SELECT naturaldisasters.abrv, COUNT(*) as count
 FROM naturaldisasters 
-WHERE date > %s AND date < %s
+WHERE date >= %s AND date <= %s
 GROUP BY naturaldisasters.abrv;
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, percentile_cont(k) within group (order by nd_counts.count)
@@ -215,7 +215,9 @@ WHERE ABS(t.count - p.percentile_cont) =
 
 @app.route('/temperature', methods=["GET"])
 def temperatureData():
-  print(START_DATE, END_DATE)
+  startdate = datetime.date(int(START_DATE.year), 1, 1)
+  enddate = datetime.date(int(END_DATE.year), 1, 1)
+  print(startdate, enddate)
   g.conn.execute("""CREATE OR REPLACE VIEW temp_changes as 
 SELECT t1.abrv, t2.temp - t1.temp as Temp_Change
 FROM Temperature t1 INNER JOIN Temperature t2 on t1.abrv = t2.abrv
@@ -225,7 +227,7 @@ ORDER BY Temp_Change;
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Temp_Change)
 FROM temp_changes, generate_series(0.00, 1, 0.05) as k
-GROUP BY k;""", START_DATE, END_DATE)
+GROUP BY k;""", startdate, enddate)
   temp_perc = g.conn.execute("""SELECT * 
 FROM temp_changes t, percentiles p
 WHERE ABS(t.Temp_Change - percentile_cont) = 
@@ -239,7 +241,9 @@ WHERE ABS(t.Temp_Change - percentile_cont) =
 
 @app.route('/air', methods=["GET"])
 def airData():
-  print(START_DATE, END_DATE)
+  startdate = datetime.date(int(START_DATE.year), 1, 1)
+  enddate = datetime.date(int(END_DATE.year), 1, 1)
+  print(startdate, enddate)
   g.conn.execute("""CREATE OR REPLACE VIEW air_changes as 
 SELECT a1.abrv, a2.aqi - a1.aqi Air_Change
 FROM AirQuality a1 INNER JOIN AirQuality a2 on a1.abrv = a2.abrv
@@ -249,7 +253,7 @@ ORDER BY Air_Change;
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Air_Change)
 FROM Air_changes, generate_series(0.00, 1, 0.05) as k
-GROUP BY k;""", START_DATE, END_DATE)
+GROUP BY k;""", startdate, enddate)
   air_perc = g.conn.execute("""SELECT * 
 FROM air_changes t, percentiles p
 WHERE ABS(t.Air_Change - percentile_cont) = 
@@ -263,7 +267,9 @@ WHERE ABS(t.Air_Change - percentile_cont) =
 
 @app.route('/water', methods=["GET"])
 def waterData():
-  print(START_DATE, END_DATE)
+  startdate = datetime.date(int(START_DATE.year), 1, 1)
+  enddate = datetime.date(int(END_DATE.year), 1, 1)
+  print(startdate, enddate)
   g.conn.execute("""CREATE OR REPLACE VIEW water_changes as 
 SELECT w1.abrv, w2.concentration - w1.concentration as Water_Change
 FROM waterquality w1 INNER JOIN waterquality w2 on w1.abrv = w2.abrv
@@ -273,7 +279,7 @@ ORDER BY Water_Change;
 CREATE OR REPLACE VIEW percentiles as
 SELECT k, PERCENTILE_CONT(k) within group (order by Water_Change)
 FROM Water_changes, generate_series(0.00, 1, 0.05) as k
-GROUP BY k;""",START_DATE, END_DATE)
+GROUP BY k;""",startdate, enddate)
   water_perc = g.conn.execute("""SELECT * 
 FROM water_changes t, percentiles p
 WHERE ABS(t.Water_Change - percentile_cont) = 
