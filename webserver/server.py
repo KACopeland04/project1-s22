@@ -181,7 +181,7 @@ def selfreportedData():
   print(START_DATE, END_DATE)
   cursor = g.conn.execute("""SELECT record_num, date, numvotes, abrv, description, lat, lng 
   FROM selfreporteddata 
-  WHERE date >= %s AND date <= %s AND (description = 'Ventilation' OR description = 'Sewage Leak')
+  WHERE date >= %s AND date <= %s
   ORDER BY date DESC 
   LIMIT 10""", START_DATE, END_DATE)
   points = {}
