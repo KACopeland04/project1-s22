@@ -1,14 +1,19 @@
 <style>
     table {
-    background-color: #fd9;
+    background-color: #78afc7;
     }
     tbody {
         background-color: #fff;
-        height: 150px;
+        height: 250px;
         overflow: auto;
+        width: 500px;
     }
     td {
         padding: 3px 10px;
+        text-align:center;
+    }
+    th {
+        width:20%;
     }
     thead > tr, tbody{ display:block;}
 
@@ -16,10 +21,23 @@
         background: #ccd; 
     }
 
+    .title {
+        color: #78afc7;
+        width: 500px;
+        height: 50px;
+        padding: 4px;
+        text-align: center;
+    }
+
+    .dropdown-label {
+        width: 500px;
+        text-align: center;
+    }
+
     .highlight {
         background: #eef;
     }
-    .btn {
+    .btn-upvote {
     border: 2px solid transparent;
     background: #ffffff;
     color: #777;
@@ -35,10 +53,109 @@
     display: block;
     width: 75px;
     margin: 0 auto;
+    height:40px;
+    padding:4px;
     }
-    .btn:hover {
+    .btn-upvote:hover {
     cursor: grab;
     background:#78afc7;
+    }
+
+    .btn-label {
+    border: 2px solid transparent;
+    background: #ffffff;
+    color: #777;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    width: 100px;
+    margin: 0 auto;
+    z-index:10;
+    height:40px;
+    padding:4px;
+    }
+    .btn-label:hover {
+    cursor: grab;
+    background:#78afc7;
+    }
+
+    .btn-logout {
+    border: 2px solid transparent;
+    background: #78afc7;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    width: 100px;
+    margin: 0 auto;
+    }
+    .btn-logout:hover {
+    cursor: grab;
+    background-color:#4876b3;;
+    }
+
+    .btn-add {
+    border: 2px solid transparent;
+    background: #78afc7;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    width: 300px;
+    margin: 0 auto;
+    }
+    .btn-add:hover {
+    cursor: grab;
+    background-color:#4876b3;;
+    }
+
+    .topbar {
+    background-color: #78afc7;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    height: 50px;
+    width: 100%;
+    }
+
+    .bottombar {
+    background-color: #78afc7;
+    overflow: hidden;
+    position: fixed;
+    bottom: 0;
+    height: 50px;
+    width: 100%;
+    }
+
+    .flashes{
+    background-color:#ECF0F1;
+    opacity:0.6;
+    text-align:center;
+    color:red;
+    width:100%;
+    height:50px;
+    padding:4px;
     }
 
 </style>
@@ -306,13 +423,39 @@
    </script>
 </head>
     <body>
-        <div id="regions_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 250px;"></div>
+        <div id="regions_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>
 
-        <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 250px;"></div>
+        <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>
 
-        <div id="legend_label" style="position: absolute;top:580px;left:375px; display: none;"><p>Percentile</p></div>
+        <div id="legend_label" style="position: absolute;top:580px;left:175px; display: none;"><p>Percentile</p></div> 
 
-        <div id="srd" style="position: absolute; top: 600px; right:25px; display:none;">
+        <h1 class="title" style="position: absolute; bottom: 650px; right:30px;"> Labels</h1>
+
+        <select name="contdata_2" id="continuous-select_2" class="dropdown-label" style="position:absolute; bottom:660px; right:30px">
+            <option value="" class="data-field" id="type" name="type">--Select a Label to Filter Data--</option>
+            <option value="label1">label1</option>
+            <option value="label2">label2</option>
+            <option value="label3">label3</option>
+            <option value="label4">label4</option>
+       </select>
+
+       <button class="btn-label" id="btn" onclick="label()" style="position: absolute; bottom: 358px; right:30px;">Add Label</button>
+
+        <div id="srd_2" style="position: absolute; bottom: 400px; right:30px;">
+            <table id="srdtable_2">
+            <tr>
+              <th>Record Number</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th>State</th>
+              <th>Votes</th>
+            </tr>
+            </table>
+        </div>
+
+        <h1 class="title" style="position: absolute; bottom: 320px; right:30px;"> Votes</h1>
+        
+        <div id="srd" style="position: absolute; bottom: 100px; right:30px;">
             <table id="srdtable">
             <tr>
               <th>Record Number</th>
@@ -324,9 +467,9 @@
             </table>
         </div>
 
-        <button id="btn" onclick="upvote()" style="position: absolute; top: 760px; right:30px; display: none">Upvote</button>
+        <button class="btn-upvote" id="btn" onclick="upvote()" style="position: absolute; bottom: 57px; right:30px;">Upvote</button>
 
-        <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:450px">
+        <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:250px">
             <select name="contdata" id="continuous-select" class="dropdown">
                   <option value="" class="data-field" id="type" name="type">--Select the Type of Data and Dates You Want to See--</option>
                   <option value="water">Water Quality</option>
@@ -340,19 +483,22 @@
             <input type="submit"></button>
         </form>
 
-        <form action="/setDates" method="POST" style = "position: absolute; top: 725px; left:450px">
+        <form action="/setDates" method="POST" style = "position: absolute; top: 725px; left:250px">
             <input type="date" class="date-select" value="" placeholder="Start Date" name="startdate">
             <input type="date" class="date-select" value="" placeholder="End Date" name="enddate">
             <br><br>
             <input type="submit" value="Set Dates"></button>
         </form>
 
-        <form action="/dataentry" style="position: absolute; top: 100px; right: 25px;">
-            <input type="submit" value="Report an environmental issue/concern"/>
+        <div class="topbar"></div>
+        <div class="bottombar"></div>
+
+        <form action="/dataentry" style="position: absolute; top: 0px; left: 25px;">
+            <input class="btn-add" type="submit" value="Report an environmental issue/concern"/>
           </form>
 
-        <form action="/logout" style="position: absolute; top: 50px; right: 25px;">
-            <input type="submit" value="Logout"/>
+        <form action="/logout" style="position: absolute; top: 0px; right: 25px;">
+            <input class="btn-logout" type="submit" value="Logout"/>
           </form>
           
     </body>
