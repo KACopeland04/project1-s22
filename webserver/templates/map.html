@@ -11,8 +11,36 @@
         padding: 3px 10px;
     }
     thead > tr, tbody{ display:block;}
-    #entries tr.clicked { background: #ccd; }
-    #entries tr.highlight { background: #eef; }
+
+    .clicked {
+        background: #ccd; 
+    }
+
+    .highlight {
+        background: #eef;
+    }
+    .btn {
+    border: 2px solid transparent;
+    background: #ffffff;
+    color: #777;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    width: 75px;
+    margin: 0 auto;
+    }
+    .btn:hover {
+    cursor: grab;
+    background:#78afc7;
+    }
+
 </style>
 
 
@@ -93,15 +121,14 @@
         }
 
         function drawMarkersMap() {
-            console.log("hello")
             fetch("/selfreporteddata")
             .then(data => data.json())
             .then(data => {
                 console.log(data);
                 var i = 0;
-                var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv']];
+                var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv', 'record number']];
                 Object.entries(data).forEach(([key, value]) => {
-                    data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4]]);
+                    data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4], value[5]]);
             });
             selfreportedTable(data_array);
             console.log(data_array);
@@ -131,11 +158,10 @@
 
     function selfreportedTable(data){
 
-        console.log("hello")     
-
         // Find a <table> element with id="myTable":
         var table = document.getElementById("srdtable");
         var tablediv = document.getElementById("srd");
+        var btn = document.getElementById("btn")
 
         var rowCount = table.rows.length;
         var tableHeaderRowCount = 1;
@@ -154,16 +180,95 @@
             var cell2 = row.insertCell(1);
             var cell3 = row.insertCell(2);
             var cell4 = row.insertCell(3);
+            var cell5 = row.insertCell(4);
 
-            cell1.innerHTML = element[2];
-            cell2.innerHTML = element[4];
-            cell3.innerHTML = element[5];
-            cell4.innerHTML = element[3];
+            var date = new Date(element[4])
+
+            cell1.innerHTML = element[6];
+            cell2.innerHTML = element[2];
+            cell3.innerHTML = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear();
+            cell4.innerHTML = element[5];
+            cell5.innerHTML = element[3];
 
         });
 
         tablediv.style.display = "block";
+        btn.style.display = "block";
 
+        tableHighlightRow();
+
+    }
+
+    var selected = null;
+
+    function tableHighlightRow() {
+        if (document.getElementById && document.createTextNode) {
+            var tables=document.getElementsByTagName('table');
+            for ( var i=0; i<tables.length; i++ ) {
+                var trs=tables[i].getElementsByTagName('tr');
+                for ( var j=0; j<trs.length; j++) {
+                if (trs[j].parentNode.nodeName==='TBODY') {
+                    trs[j].onmouseover=function(){
+                        // 'highlight' color is set in tablelist.css
+                        if ( this.className === '') {
+                            this.className='highlight';
+                        }
+                        return false
+                    }
+                    trs[j].onmouseout=function(){
+                        if ( this.className === 'highlight') {
+                            this.className='';
+                        }
+                        return false
+                    }
+                    trs[j].onmousedown=function(){
+                        //
+                        // Toggle the selected state of this row
+                        // 
+                        // 'clicked' color is set in tablelist.css.
+                        if ( this.className !== 'clicked' ) {
+                            // Clear previous selection
+                            if ( selected !== null ) {
+                                selected.className='';
+                            }
+                            // Mark this row as selected
+                            this.className='clicked';
+                            selected = this;
+                            console.log(selected)
+                        }
+                        else {
+                            this.className='';
+                            selected = null;
+                        }
+                        return true
+                    }
+                }
+                }
+            }
+        }
+    }
+
+    function upvote() {
+        console.log(selected.getElementsByTagName('td')[0].innerHTML)
+        const data_to_upvote = selected.getElementsByTagName('td')[0].innerHTML;
+        fetch("/upvote", {
+            method: "POST", 
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data_to_upvote)
+        })
+        .then(data => data.json())
+        .then(data => {
+            console.log(data);
+            drawMarkersMap();
+        })
+        // $.ajax({
+        //     url:"/upvote",
+        //     type:"POST",
+        //     contentType:"application/json",
+        //     data:JSON.stringify(data_to_upvote)
+        // });
     }
 
     function processForm(e) {
@@ -176,6 +281,7 @@
 
         var markers = document.getElementById("self_div");
         var label = document.getElementById("legend_label");
+        var button = document.getElementById("btn")
         var tablediv = document.getElementById("srd");
 
         if (continuous.length>0) {
@@ -193,6 +299,7 @@
         else{
             markers.style.display = "none";
             tablediv.style.display = "none";
+            btn.style.display = "none";
         }
         return true
     }
@@ -208,6 +315,7 @@
         <div id="srd" style="position: absolute; top: 600px; right:25px; display:none;">
             <table id="srdtable">
             <tr>
+              <th>Record Number</th>
               <th>Description</th>
               <th>Date</th>
               <th>State</th>
@@ -215,6 +323,8 @@
             </tr>
             </table>
         </div>
+
+        <button id="btn" onclick="upvote()" style="position: absolute; top: 760px; right:30px; display: none">Upvote</button>
 
         <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:450px">
             <select name="contdata" id="continuous-select" class="dropdown">

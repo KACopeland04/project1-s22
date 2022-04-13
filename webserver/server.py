@@ -158,6 +158,16 @@ def index():
 # the functions for each app.route needs to have different names
 #
 
+@app.route('/upvote', methods=["POST"])
+def upvote():
+  data = request.get_json()
+  print(data)
+  print(type(data))
+  cursor = g.conn.execute("""UPDATE selfreporteddata 
+  SET numvotes = numvotes + 1 
+  WHERE record_num = %s""", data)
+  return {"message": "ok"}
+
 @app.route('/map')
 def map():
   return render_template("map.html")
@@ -182,12 +192,12 @@ def selfreportedData():
   cursor = g.conn.execute("""SELECT record_num, date, numvotes, abrv, description, lat, lng 
   FROM selfreporteddata 
   WHERE date >= %s AND date <= %s
-  ORDER BY date DESC 
+  ORDER BY numvotes DESC 
   LIMIT 10""", START_DATE, END_DATE)
   points = {}
   for result in cursor:
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']],
-                                    result['date'], result['numvotes'], result['abrv']]
+                                    result['date'], result['numvotes'], result['abrv'], result['record_num']]
   cursor.close()
   return points
 
