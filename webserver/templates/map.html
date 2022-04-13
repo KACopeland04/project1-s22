@@ -137,7 +137,7 @@
     top: 0;
     height: 50px;
     width: 100%;
-    }
+    } 
 
     .bottombar {
     background-color: #78afc7;
@@ -148,14 +148,13 @@
     width: 100%;
     }
 
-    .flashes{
-    background-color:#ECF0F1;
-    opacity:0.6;
-    text-align:center;
-    color:red;
-    width:100%;
-    height:50px;
-    padding:4px;
+    #dates{
+    top:600px;
+    left:300px; 
+    position: absolute;
+    color: #78afc7;
+    font-size: 24px;
+    text-align: center;
     }
 
 </style>
@@ -183,7 +182,7 @@
 <html>
 <head runat="server">
     <title></title>
-    
+
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load('current', {
@@ -218,9 +217,16 @@
             .then(data => data.json())
             .then(data => {
                 console.log(data);
+                var label = document.getElementById("legend_label");
+                label.style.display = "block";
                 var data_array = [['State','Status']];
                 Object.entries(data).forEach(([key, value]) => {
-                    data_array.push([key, value])
+                    data_array.push([key, value]);
+                    if(key == 'alert'){
+                         alert(data['alert']);
+                         label.style.display = "none";
+                         return;
+                    }
                 });
                 console.log(data_array)
                 datatable = google.visualization.arrayToDataTable(data_array);
@@ -241,12 +247,17 @@
             fetch("/selfreporteddata")
             .then(data => data.json())
             .then(data => {
+                if(Object.keys(data).length === 0){
+                    alert("No self reported data for time period selected");
+                    return
+                }
                 console.log(data);
                 var i = 0;
                 var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv', 'record number']];
                 Object.entries(data).forEach(([key, value]) => {
                     data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4], value[5]]);
             });
+
             selfreportedTable(data_array);
             console.log(data_array);
 
@@ -403,7 +414,6 @@
 
         if (continuous.length>0) {
             google.charts.setOnLoadCallback(drawRegionsMap(continuous));
-            label.style.display = "block";
         }
         else{
             label.style.display = "none";
@@ -416,13 +426,17 @@
         else{
             markers.style.display = "none";
             tablediv.style.display = "none";
-            btn.style.display = "none";
+            button.style.display = "none";
         }
         return true
     }
    </script>
 </head>
+
     <body>
+    
+        <div id = "dates">{{dates}}</div>
+
         <div id="regions_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>
 
         <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>

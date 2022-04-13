@@ -158,6 +158,9 @@ def index():
 # the functions for each app.route needs to have different names
 #
 
+START_DATE = datetime.date(2012, 1, 1)
+END_DATE = datetime.date(2020, 1, 1)
+
 @app.route('/upvote', methods=["POST"])
 def upvote():
   data = request.get_json()
@@ -169,22 +172,23 @@ def upvote():
   return {"message": "ok"}
 
 @app.route('/map')
-def map():
-  return render_template("map.html")
-
-START_DATE = datetime.date(2012, 1, 1)
-END_DATE = datetime.date(2020, 1, 1)
+def map(dates = [START_DATE, END_DATE]):
+  return render_template("map.html", dates = "Showing Data From "+START_DATE.strftime("%m/%d/%Y")+" To "+END_DATE.strftime("%m/%d/%Y"))
 
 @app.route('/setDates', methods=["POST"])
 def setDates():
-  data =  request.form
-  start_date_split = data['startdate'].split('-')
-  global START_DATE
-  global END_DATE
-  START_DATE = datetime.date(int(start_date_split[0]), int(start_date_split[1]), int(start_date_split[2]))
-  end_date_split = data['enddate'].split('-')
-  END_DATE = datetime.date(int(end_date_split[0]), int(end_date_split[1]), int(end_date_split[2]))
-  return redirect('/map')
+  try:
+    data =  request.form
+    start_date_split = data['startdate'].split('-')
+    global START_DATE
+    global END_DATE
+    START_DATE = datetime.date(int(start_date_split[0]), int(start_date_split[1]), int(start_date_split[2]))
+    end_date_split = data['enddate'].split('-')
+    END_DATE = datetime.date(int(end_date_split[0]), int(end_date_split[1]), int(end_date_split[2]))
+    flash("Viewing Data From "+str(START_DATE)+" through "+ str(END_DATE))
+    return redirect('/map')
+  except:
+    return redirect('/map')
 
 @app.route('/selfreporteddata', methods=["GET"])
 def selfreportedData():
@@ -199,6 +203,7 @@ def selfreportedData():
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']],
                                     result['date'], result['numvotes'], result['abrv'], result['record_num']]
   cursor.close()
+  print(points)
   return points
 
 @app.route('/naturaldisasters', methods=["GET"])
@@ -222,6 +227,8 @@ WHERE ABS(t.count - p.percentile_cont) =
   for result in nd_perc:
     states[result["abrv"]] =  int(result["k"]*100)
   nd_perc.close()
+  if(START_DATE<datetime.date(2012,1,1,) or END_DATE>datetime.date(2022,1,1,)):
+    states["alert"] = "No data for this date range, please select between 2012 and 2021"
   return states
 
 
@@ -249,6 +256,8 @@ WHERE ABS(t.Temp_Change - percentile_cont) =
   for result in temp_perc:
     states[result["abrv"]] =  int(result["k"]*100)
   temp_perc.close()
+  if(startdate<datetime.date(2012,1,1,) or enddate>datetime.date(2021,1,1,)):
+    states["alert"] = "No data for this date range, please select between 2012 and 2021"
   return states
 
 @app.route('/air', methods=["GET"])
@@ -275,6 +284,8 @@ WHERE ABS(t.Air_Change - percentile_cont) =
   for result in air_perc:
     states[result["abrv"]] =  int(result["k"]*100)
   air_perc.close()
+  if(startdate<datetime.date(2012,1,1,) or enddate>datetime.date(2021,1,1,)):
+    states["alert"] = "No data for this date range, please select between 2012 and 2021"
   return states
 
 @app.route('/water', methods=["GET"])
@@ -301,6 +312,8 @@ WHERE ABS(t.Water_Change - percentile_cont) =
   for result in water_perc:
     states[result["abrv"]] =  int(result["k"]*100)
   water_perc.close()
+  if(startdate<datetime.date(2012,1,1,) or enddate>datetime.date(2020,1,1,)):
+    states["alert"] = "No data for this date range, please select between 2012 and 2020"
   return states
 
 #source: https://www.section.io/engineering-education/user-login-web-system/
