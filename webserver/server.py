@@ -161,12 +161,37 @@ def index():
 @app.route('/upvote', methods=["POST"])
 def upvote():
   data = request.get_json()
-  print(data)
-  print(type(data))
   cursor = g.conn.execute("""UPDATE selfreporteddata 
   SET numvotes = numvotes + 1 
   WHERE record_num = %s""", data)
+  cursor.close()
   return {"message": "ok"}
+
+@app.route('/dropdown', methods=["GET"])
+def dropdown():
+  cursor = g.conn.execute("""SELECT labelname 
+  FROM Labels""")
+  labels = {}
+  for result in cursor:
+    labels["result " + str(result['labelname'])] =  [result['labelname']]
+  cursor.close()
+  return labels
+
+@app.route('/label', methods=["POST"])
+def label():
+  data = request.get_json()
+  cursor = g.conn.execute("""INSERT INTO Assigned (record_num, labelname) VALUES (%s, %s)""", (data['record'], data['label']))
+  cursor.close()
+  return {"message": "ok"}
+
+@app.route('/newlabel', methods=["POST"])
+def newlabel():
+  data = request.form
+  print(data)
+  print(session['username'])
+  cursor = g.conn.execute("""INSERT INTO Labels (labelname, username) VALUES (%s, %s)""", (data["label"], session['username']))
+  cursor.close()
+  return redirect('/map')
 
 @app.route('/map')
 def map():

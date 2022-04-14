@@ -75,13 +75,38 @@
     box-shadow: none;
     transition: 0.25s;
     display: block;
-    width: 100px;
+    width: 120px;
     margin: 0 auto;
     z-index:10;
     height:40px;
     padding:4px;
     }
     .btn-label:hover {
+    cursor: grab;
+    background:#78afc7;
+    }
+
+    .btn-newlabel {
+    border: 2px solid transparent;
+    background: #ffffff;
+    color: #777;
+    font-size: 16px;
+    line-height: 25px;
+    padding: 10px 0;
+    text-decoration: none;
+    text-shadow: none;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: none;
+    transition: 0.25s;
+    display: block;
+    width: 150px;
+    margin: 0 auto;
+    z-index:10;
+    height:40px;
+    padding:4px;
+    }
+    .btn-newlabel:hover {
     cursor: grab;
     background:#78afc7;
     }
@@ -158,6 +183,21 @@
     padding:4px;
     }
 
+    .form-popup{
+    display:none;
+    background: #78afc7;
+    color: #ffffff;
+    border: 2px solid transparent;
+    position:relative;
+    top: 45%;
+    left: 42%;
+    z-index:100;
+    text-align: center;
+    padding:8px;
+    width:250px;
+    height:35px;
+    }
+
 </style>
 
 
@@ -217,12 +257,10 @@
             fetch("/"+datafunction)
             .then(data => data.json())
             .then(data => {
-                console.log(data);
                 var data_array = [['State','Status']];
                 Object.entries(data).forEach(([key, value]) => {
                     data_array.push([key, value])
                 });
-                console.log(data_array)
                 datatable = google.visualization.arrayToDataTable(data_array);
                 var options = {};
                 options['region'] = 'US';
@@ -241,22 +279,18 @@
             fetch("/selfreporteddata")
             .then(data => data.json())
             .then(data => {
-                console.log(data);
                 var i = 0;
                 var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv', 'record number']];
                 Object.entries(data).forEach(([key, value]) => {
                     data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4], value[5]]);
             });
             selfreportedTable(data_array);
-            console.log(data_array);
 
             var geo_data = []
 
             data_array.forEach((element) => { 
                 geo_data.push(element.slice(0,4))
             });
-
-            console.log(geo_data);
             
             datatable = google.visualization.arrayToDataTable(geo_data);
             var options = {
@@ -277,18 +311,24 @@
 
         // Find a <table> element with id="myTable":
         var table = document.getElementById("srdtable");
+        var table2 = document.getElementById("srdtable2");
         var tablediv = document.getElementById("srd");
+        var tablediv2 = document.getElementById("srd2");
         var btn = document.getElementById("btn")
 
         var rowCount = table.rows.length;
+        var rowCount2 = table2.rows.length;
         var tableHeaderRowCount = 1;
         for (var i = tableHeaderRowCount; i < rowCount; i++) {
                 table.deleteRow(tableHeaderRowCount);
         }
+        tableHeaderRowCount = 1;
+        for (var i = tableHeaderRowCount; i < rowCount2; i++) {
+                table2.deleteRow(tableHeaderRowCount);
+        }
 
         data.slice(1).forEach((element) => { 
 
-            console.log(element);
             // Create an empty <tr> element
             var row = table.insertRow(-1);
 
@@ -309,64 +349,129 @@
 
         });
 
+        data.slice(1).forEach((element) => { 
+
+            // Create an empty <tr> element
+            var row2 = table2.insertRow(-1);
+
+            // Insert new cells
+            var cell1 = row2.insertCell(0);
+            var cell2 = row2.insertCell(1);
+            var cell3 = row2.insertCell(2);
+            var cell4 = row2.insertCell(3);
+            var cell5 = row2.insertCell(4);
+
+            var date = new Date(element[4])
+
+            cell1.innerHTML = element[6];
+            cell2.innerHTML = element[2];
+            cell3.innerHTML = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear();
+            cell4.innerHTML = element[5];
+            cell5.innerHTML = element[3];
+
+        });
+
         tablediv.style.display = "block";
+        tablediv2.style.display = "block";
         btn.style.display = "block";
 
         tableHighlightRow();
+        tableHighlightRow();
+
+        dropdown();
 
     }
 
     var selected = null;
+    var selected2 = null;
 
     function tableHighlightRow() {
         if (document.getElementById && document.createTextNode) {
-            var tables=document.getElementsByTagName('table');
-            for ( var i=0; i<tables.length; i++ ) {
-                var trs=tables[i].getElementsByTagName('tr');
-                for ( var j=0; j<trs.length; j++) {
-                if (trs[j].parentNode.nodeName==='TBODY') {
-                    trs[j].onmouseover=function(){
-                        // 'highlight' color is set in tablelist.css
-                        if ( this.className === '') {
-                            this.className='highlight';
-                        }
-                        return false
+            var table = document.getElementById("srdtable");
+            var trs=table.getElementsByTagName('tr');
+            for ( var j=0; j<trs.length; j++) {
+            if (trs[j].parentNode.nodeName==='TBODY') {
+                trs[j].onmouseover=function(){
+                    if ( this.className === '') {
+                        this.className='highlight';
                     }
-                    trs[j].onmouseout=function(){
-                        if ( this.className === 'highlight') {
-                            this.className='';
-                        }
-                        return false
-                    }
-                    trs[j].onmousedown=function(){
-                        //
-                        // Toggle the selected state of this row
-                        // 
-                        // 'clicked' color is set in tablelist.css.
-                        if ( this.className !== 'clicked' ) {
-                            // Clear previous selection
-                            if ( selected !== null ) {
-                                selected.className='';
-                            }
-                            // Mark this row as selected
-                            this.className='clicked';
-                            selected = this;
-                            console.log(selected)
-                        }
-                        else {
-                            this.className='';
-                            selected = null;
-                        }
-                        return true
-                    }
+                    return false
                 }
+                trs[j].onmouseout=function(){
+                    if ( this.className === 'highlight') {
+                        this.className='';
+                    }
+                    return false
                 }
+                trs[j].onmousedown=function(){
+                    if ( this.className !== 'clicked' ) {
+                        if ( selected !== null ) {
+                            selected.className='';
+                        }
+                        this.className='clicked';
+                        selected = this;
+                    }
+                    else {
+                        this.className='';
+                        selected = null;
+                    }
+                    return true
+                }
+            }
+            }
+        }
+
+        if (document.getElementById && document.createTextNode) {
+            var table = document.getElementById("srdtable2");
+            var trs=table.getElementsByTagName('tr');
+            for ( var j=0; j<trs.length; j++) {
+            if (trs[j].parentNode.nodeName==='TBODY') {
+                trs[j].onmouseover=function(){
+                    if ( this.className === '') {
+                        this.className='highlight';
+                    }
+                    return false
+                }
+                trs[j].onmouseout=function(){
+                    if ( this.className === 'highlight') {
+                        this.className='';
+                    }
+                    return false
+                }
+                trs[j].onmousedown=function(){
+                    if ( this.className !== 'clicked' ) {
+                        if ( selected2 !== null ) {
+                            selected2.className='';
+                        }
+                        this.className='clicked';
+                        selected2 = this;
+                    }
+                    else {
+                        this.className='';
+                        selected2 = null;
+                    }
+                    return true
+                }
+            }
             }
         }
     }
 
+    function dropdown() {
+		fetch("/dropdown")
+            .then(data => data.json())
+            .then(data => {
+            var list1 = document.getElementById('list');
+            list1.options[0] = new Option('--Select a Label to Assign to Selected Record--');
+            var i = 1;
+            for (const [key, value] of Object.entries(data)) {
+                list1.options[i] = new Option(value[0]);
+                i = i + 1;
+            }
+        });
+    }
+
     function upvote() {
-        console.log(selected.getElementsByTagName('td')[0].innerHTML)
         const data_to_upvote = selected.getElementsByTagName('td')[0].innerHTML;
         fetch("/upvote", {
             method: "POST", 
@@ -377,21 +482,37 @@
         })
         .then(data => data.json())
         .then(data => {
-            console.log(data);
             drawMarkersMap();
         })
-        // $.ajax({
-        //     url:"/upvote",
-        //     type:"POST",
-        //     contentType:"application/json",
-        //     data:JSON.stringify(data_to_upvote)
-        // });
+    }
+
+    function assign_label() {
+        var drop = document.getElementById('list');
+        var selected_label = drop.value;
+        const data_to_upvote = {'record': selected2.getElementsByTagName('td')[0].innerHTML, 'label': selected_label};
+        fetch("/label", {
+            method: "POST", 
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data_to_upvote)
+        })
+        .then(data => data.json())
+        .then(data => {
+            drawMarkersMap();
+        })
+    }
+
+    function newlabel() {
+        document.getElementById("myForm").style.display = "block";
+    }
+
+    function closeform() {
+        document.getElementById("myForm").style.display = "none";
     }
 
     function processForm(e) {
         e.preventDefault();
-        console.log(document.getElementById('continuous-select').value);
-        console.log(document.getElementById('selfreporteddata').checked);
 
         continuous = document.getElementById('continuous-select').value;
         selfreported = document.getElementById('selfreporteddata').checked;
@@ -416,7 +537,7 @@
         else{
             markers.style.display = "none";
             tablediv.style.display = "none";
-            btn.style.display = "none";
+            button.style.display = "none";
         }
         return true
     }
@@ -431,18 +552,24 @@
 
         <h1 class="title" style="position: absolute; bottom: 650px; right:30px;"> Labels</h1>
 
-        <select name="contdata_2" id="continuous-select_2" class="dropdown-label" style="position:absolute; bottom:660px; right:30px">
-            <option value="" class="data-field" id="type" name="type">--Select a Label to Filter Data--</option>
-            <option value="label1">label1</option>
-            <option value="label2">label2</option>
-            <option value="label3">label3</option>
-            <option value="label4">label4</option>
-       </select>
+        <button class="btn-newlabel" id="btn" onclick="newlabel()" style="position: absolute; bottom: 690px; right:30px;">Create New Label</button>
 
-       <button class="btn-label" id="btn" onclick="label()" style="position: absolute; bottom: 358px; right:30px;">Add Label</button>
+        <select id="list" name="contdata_2" class="dropdown-label" style="position:absolute; bottom:660px; right:30px">
+            <option >'--Select a Label to Assign to Selected Record--'</option>
+        </select>
 
-        <div id="srd_2" style="position: absolute; bottom: 400px; right:30px;">
-            <table id="srdtable_2">
+        <button class="btn-label" id="btn" onclick="assign_label()" style="position: absolute; bottom: 358px; right:30px;">Assign Label</button>
+        
+        <div class="form-popup" id="myForm">
+            <form action="/newlabel" method="POST" class="popup">
+                <input name="label" type="text" value="" placeholder="enter label name"/>
+                <button><input type="submit"></button>
+            </form>
+            <button onclick="closeform()" style="position: relative;">x</button>
+        </div>
+
+        <div id="srd2" style="position: absolute; bottom: 400px; right:30px;">
+            <table id="srdtable2">
             <tr>
               <th>Record Number</th>
               <th>Description</th>
@@ -454,7 +581,7 @@
         </div>
 
         <h1 class="title" style="position: absolute; bottom: 320px; right:30px;"> Votes</h1>
-        
+
         <div id="srd" style="position: absolute; bottom: 100px; right:30px;">
             <table id="srdtable">
             <tr>
