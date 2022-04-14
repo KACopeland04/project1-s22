@@ -1,48 +1,49 @@
 <style>
     table {
     background-color: #78afc7;
+    position:relative;
     }
     tbody {
-        background-color: #fff;
-        height: 250px;
-        overflow: auto;
-        width: 500px;
+    background-color: #fff;
+    overflow: auto;
+    width:33vw;
+    height:16.5vw;
     }
     td {
-        padding: 3px 10px;
-        text-align:center;
+    padding: 3px 10px;
+    text-align:center;
     }
     th {
-        width:20%;
+    width:20%;
     }
     thead > tr, tbody{ display:block;}
 
     .clicked {
-        background: #ccd; 
+    background: #ccd; 
     }
 
     .title {
-        color: #78afc7;
-        width: 500px;
-        height: 50px;
-        padding: 4px;
-        text-align: center;
+    color: #78afc7;
+    width: 33%;
+    height: 6%;
+    padding: 4px;
+    text-align: center;
     }
 
     .dropdown-label {
-        width: 500px;
-        text-align: center;
+    width: 33%;
+    text-align: center;
     }
 
     .highlight {
-        background: #eef;
+    background: #eef;
     }
     .btn-upvote {
     border: 2px solid transparent;
     background: #ffffff;
     color: #777;
     font-size: 16px;
-    line-height: 25px;
+    line-height: 3%;
     padding: 10px 0;
     text-decoration: none;
     text-shadow: none;
@@ -51,9 +52,9 @@
     box-shadow: none;
     transition: 0.25s;
     display: block;
-    width: 75px;
+    width: 6%;
     margin: 0 auto;
-    height:40px;
+    height:5%;
     padding:4px;
     }
     .btn-upvote:hover {
@@ -66,7 +67,7 @@
     background: #ffffff;
     color: #777;
     font-size: 16px;
-    line-height: 25px;
+    line-height: 3%;
     padding: 10px 0;
     text-decoration: none;
     text-shadow: none;
@@ -75,10 +76,10 @@
     box-shadow: none;
     transition: 0.25s;
     display: block;
-    width: 120px;
+    width: 8%;
     margin: 0 auto;
     z-index:10;
-    height:40px;
+    height:5%;
     padding:4px;
     }
     .btn-label:hover {
@@ -91,7 +92,7 @@
     background: #ffffff;
     color: #777;
     font-size: 16px;
-    line-height: 25px;
+    line-height: 3%;
     padding: 10px 0;
     text-decoration: none;
     text-shadow: none;
@@ -100,10 +101,10 @@
     box-shadow: none;
     transition: 0.25s;
     display: block;
-    width: 150px;
+    width: 10%;
     margin: 0 auto;
     z-index:10;
-    height:40px;
+    height:5%;
     padding:4px;
     }
     .btn-newlabel:hover {
@@ -162,6 +163,8 @@
     top: 0;
     height: 50px;
     width: 100%;
+    margin:0;
+    padding:0;
     } 
 
     .bottombar {
@@ -171,11 +174,13 @@
     bottom: 0;
     height: 50px;
     width: 100%;
+    margin:0;
+    padding:0;
     }
 
     #dates{
-    top:600px;
-    left:300px; 
+    top:70%;
+    left:18%; 
     position: absolute;
     color: #78afc7;
     font-size: 24px;
@@ -548,8 +553,6 @@
         }
         else{
             markers.style.display = "none";
-            tablediv.style.display = "none";
-            button.style.display = "none";
         }
         return true
     }
@@ -560,21 +563,21 @@
     
         <div id = "dates">{{dates}}</div>
 
-        <div id="regions_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>
+        <div id="regions_div" style="width: 70%; height: 68%; position: absolute; top: 0px; left: 2%;"></div>
 
-        <div id="self_div" style="width: 1000px; height: 600px; position: absolute; top: 0px; left: 50px;"></div>
+        <div id="self_div" style="width: 70%; height: 68%; position: absolute; top: 0px; left: 2%;"></div>
 
-        <div id="legend_label" style="position: absolute;top:580px;left:175px; display: none;"><p>Percentile</p></div> 
+        <div id="legend_label" style="position:absolute; top:65%; left:11.5%; display: none;"><p>Percentile</p></div> 
 
-        <h1 class="title" style="position: absolute; bottom: 650px; right:30px;"> Labels</h1>
+        <h1 class="title" style="position:absolute; top: 13%; right:2%;"> Labels</h1>
 
-        <button class="btn-newlabel" id="btn" onclick="newlabel()" style="position: absolute; bottom: 690px; right:30px;">Create New Label</button>
+        <button class="btn-newlabel" id="btn" onclick="newlabel()" style="position: absolute; top: 15%; right:2%;">Create New Label</button>
 
-        <select id="list" name="contdata_2" class="dropdown-label" style="position:absolute; bottom:660px; right:30px">
+        <select id="list" name="contdata_2" class="dropdown-label" style="position:absolute; top:21%; right:2%">
             <option >'--Select a Label to Assign to Selected Record--'</option>
         </select>
 
-        <button class="btn-label" id="btn" onclick="assign_label()" style="position: absolute; bottom: 358px; right:30px;">Assign Label</button>
+        <button class="btn-label" id="btn" onclick="assign_label()" style="position: absolute; top: 53.5%; right:2%;">Assign Label</button>
         
         <div class="form-popup" id="myForm">
             <form action="/newlabel" method="POST" class="popup">
@@ -584,7 +587,7 @@
             <button onclick="closeform()" style="position: relative;">x</button>
         </div>
 
-        <div id="srd2" style="position: absolute; bottom: 400px; right:30px;">
+        <div id="srd2" style="position: absolute; top: 24%; right:2%;">
             <table id="srdtable2">
             <tr>
               <th>Record Number</th>
@@ -596,9 +599,9 @@
             </table>
         </div>
 
-        <h1 class="title" style="position: absolute; bottom: 320px; right:30px;"> Votes</h1>
+        <h1 class="title" style="position: absolute; top: 51%; right:2%;"> Votes</h1>
 
-        <div id="srd" style="position: absolute; bottom: 100px; right:30px;">
+        <div id="srd" style="position: absolute; top: 59%; right:2%;">
             <table id="srdtable">
             <tr>
               <th>Record Number</th>
@@ -610,9 +613,9 @@
             </table>
         </div>
 
-        <button class="btn-upvote" id="btn" onclick="upvote()" style="position: absolute; bottom: 57px; right:30px;">Upvote</button>
+        <button class="btn-upvote" id="btn" onclick="upvote()" style="position: absolute; bottom: 6.5%; right:2%;">Upvote</button>
 
-        <form onsubmit="processForm(event)" style = "position: absolute; top: 650px; left:250px">
+        <form onsubmit="processForm(event)" style = "position: absolute; top: 75%; left:17%">
             <select name="contdata" id="continuous-select" class="dropdown">
                   <option value="" class="data-field" id="type" name="type">--Select the Type of Data and Dates You Want to See--</option>
                   <option value="water">Water Quality</option>
@@ -626,7 +629,7 @@
             <input type="submit"></button>
         </form>
 
-        <form action="/setDates" method="POST" style = "position: absolute; top: 725px; left:250px">
+        <form action="/setDates" method="POST" style = "position: absolute; top: 84%; left:17%">
             <input type="date" class="date-select" value="" placeholder="Start Date" name="startdate">
             <input type="date" class="date-select" value="" placeholder="End Date" name="enddate">
             <br><br>
@@ -636,11 +639,11 @@
         <div class="topbar"></div>
         <div class="bottombar"></div>
 
-        <form action="/dataentry" style="position: absolute; top: 0px; left: 25px;">
+        <form action="/dataentry" style="position: absolute; top: 0px; left: 1%;">
             <input class="btn-add" type="submit" value="Report an environmental issue/concern"/>
           </form>
 
-        <form action="/logout" style="position: absolute; top: 0px; right: 25px;">
+        <form action="/logout" style="position: absolute; top: 0px; right: 1%;">
             <input class="btn-logout" type="submit" value="Logout"/>
           </form>
           
