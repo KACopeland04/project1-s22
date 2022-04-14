@@ -533,8 +533,25 @@
         })
     }
 
-    function newlabel() {
+    function shownewlabel() {
         document.getElementById("myForm").style.display = "block";
+    }
+
+    function newlabel() {
+        fetch("/newlabel", {
+            method: "POST", 
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(document.getElementById("label_create").value)
+        })
+        .then(data => data.json())
+        .then(data => {
+            console.log("newlabel")
+            if(data['error']){
+                alert(data['error'])
+            }
+        })
     }
 
     function closeform() {
@@ -583,7 +600,7 @@
 
         <h1 class="title" style="position:absolute; top: 13%; right:2%;"> Labels</h1>
 
-        <button class="btn-newlabel" id="btn" onclick="newlabel()" style="position: absolute; top: 15%; right:2%;">Create New Label</button>
+        <button class="btn-newlabel" id="btn" onclick="shownewlabel()" style="position: absolute; top: 15%; right:2%;">Create New Label</button>
 
         <select id="list" name="contdata_2" class="dropdown-label" style="position:absolute; top:21%; right:2%">
             <option >'--Select a Label to Assign to Selected Record--'</option>
@@ -592,8 +609,8 @@
         <button class="btn-label" id="btn" onclick="assign_label()" style="position: absolute; top: 53.5%; right:2%;">Assign Label</button>
         
         <div class="form-popup" id="myForm">
-            <form action="/newlabel" method="POST" class="popup">
-                <input name="label" type="text" value="" placeholder="enter label name"/>
+            <form onsubmit="newlabel()" class="popup">
+                <input id = "label_create" name="label" type="text" value="" placeholder="enter label name"/>
                 <button><input type="submit"></button>
             </form>
             <button onclick="closeform()" style="position: relative;">x</button>

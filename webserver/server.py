@@ -194,12 +194,17 @@ def label():
 
 @app.route('/newlabel', methods=["POST"])
 def newlabel():
-  data = request.form
+  data = request.get_json()
   print(data)
   print(session['username'])
-  cursor = g.conn.execute("""INSERT INTO Labels (labelname, username) VALUES (%s, %s)""", (data["label"], session['username']))
-  cursor.close()
-  return redirect('/map')
+  try:
+    cursor = g.conn.execute("""INSERT INTO Labels (labelname, username) VALUES (%s, %s)""", (data, session['username']))
+    cursor.close()
+    return {"message": "ok"}
+  except SQLAlchemyError as e:
+    print("database entry failed")
+    error = str(e.__dict__['orig'])
+    return {"error": error}
 
 @app.route('/map')
 def map(dates = [START_DATE, END_DATE]):
