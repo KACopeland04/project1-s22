@@ -183,9 +183,14 @@ def dropdown():
 @app.route('/label', methods=["POST"])
 def label():
   data = request.get_json()
-  cursor = g.conn.execute("""INSERT INTO Assigned (record_num, labelname) VALUES (%s, %s)""", (data['record'], data['label']))
-  cursor.close()
-  return {"message": "ok"}
+  try:
+    cursor = g.conn.execute("""INSERT INTO Assigned (record_num, labelname) VALUES (%s, %s)""", (data['record'], data['label']))
+    cursor.close()
+    return {"message": "ok"}
+  except SQLAlchemyError as e:
+      print("database entry failed")
+      error = str(e.__dict__['orig'])
+      return {"error":error}
 
 @app.route('/newlabel', methods=["POST"])
 def newlabel():

@@ -180,7 +180,7 @@
 
     #dates{
     top:70%;
-    left:18%; 
+    left:9%; 
     position: absolute;
     color: #78afc7;
     font-size: 24px;
@@ -506,8 +506,15 @@
 
     function assign_label() {
         var drop = document.getElementById('list');
+
+        if(selected2 == null){
+            alert("No record selected");
+            return
+        }
+
         var selected_label = drop.value;
         const data_to_upvote = {'record': selected2.getElementsByTagName('td')[0].innerHTML, 'label': selected_label};
+
         fetch("/label", {
             method: "POST", 
             headers: {
@@ -517,7 +524,12 @@
         })
         .then(data => data.json())
         .then(data => {
-            drawMarkersMap();
+            if(data['error']){
+                alert(data['error'])
+            }
+            else{
+                drawMarkersMap();
+            }
         })
     }
 
