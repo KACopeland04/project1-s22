@@ -239,10 +239,10 @@ def selfreportedData():
     for label in labels:
       labels_string = labels_string + label['labelname']+',\n'
     labels_string = labels_string[:len(labels_string)-2]
+    labels.close()
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']],
                                     result['date'], result['numvotes'], result['abrv'], result['record_num'], labels_string]
   cursor.close()
-  labels.close()
   print(points)
   return points
 
