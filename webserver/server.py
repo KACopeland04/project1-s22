@@ -230,8 +230,7 @@ def selfreportedData():
   cursor = g.conn.execute("""SELECT record_num, date, numvotes, abrv, description, lat, lng 
   FROM selfreporteddata 
   WHERE date >= %s AND date <= %s
-  ORDER BY numvotes DESC 
-  LIMIT 10""", START_DATE, END_DATE)
+  ORDER BY numvotes DESC """, START_DATE, END_DATE)
   points = {}
   for result in cursor:
     labels_string = ''
