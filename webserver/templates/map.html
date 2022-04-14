@@ -297,9 +297,9 @@
                 }
                 console.log(data);
                 var i = 0;
-                var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv', 'record number']];
+                var data_array = [['lat','lng', 'Description', 'votes', 'date', 'abrv', 'record number', 'labels']];
                 Object.entries(data).forEach(([key, value]) => {
-                    data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4], value[5]]);
+                    data_array.push([value[1][0], value[1][1], value[0], value[3], value[2], value[4], value[5], value[6]]);
             });
 
             selfreportedTable(data_array);
@@ -385,7 +385,7 @@
             cell2.innerHTML = element[2];
             cell3.innerHTML = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear();
             cell4.innerHTML = element[5];
-            cell5.innerHTML = element[3];
+            cell5.innerHTML = element[7];
 
         });
 
@@ -594,7 +594,7 @@
               <th>Description</th>
               <th>Date</th>
               <th>State</th>
-              <th>Votes</th>
+              <th>Labels</th>
             </tr>
             </table>
         </div>

@@ -198,7 +198,7 @@ def newlabel():
 
 @app.route('/map')
 def map(dates = [START_DATE, END_DATE]):
-  return render_template("map.html", dates = "Showing Data From "+START_DATE.strftime("%m/%d/%Y")+" To "+END_DATE.strftime("%m/%d/%Y"))
+  return render_template("map.html", dates = "Showing Percentile of Change in Selected Data From "+START_DATE.strftime("%m/%d/%Y")+" To "+END_DATE.strftime("%m/%d/%Y"))
 
 @app.route('/setDates', methods=["POST"])
 def setDates():
@@ -210,7 +210,6 @@ def setDates():
     START_DATE = datetime.date(int(start_date_split[0]), int(start_date_split[1]), int(start_date_split[2]))
     end_date_split = data['enddate'].split('-')
     END_DATE = datetime.date(int(end_date_split[0]), int(end_date_split[1]), int(end_date_split[2]))
-    flash("Viewing Data From "+str(START_DATE)+" through "+ str(END_DATE))
     return redirect('/map')
   except:
     return redirect('/map')
@@ -225,9 +224,15 @@ def selfreportedData():
   LIMIT 10""", START_DATE, END_DATE)
   points = {}
   for result in cursor:
+    labels_string = ''
+    labels = g.conn.execute("""SELECT labelname FROM assigned WHERE record_num = %s""", result['record_num'])
+    for label in labels:
+      labels_string = labels_string + label['labelname']+',\n'
+    labels_string = labels_string[:len(labels_string)-2]
     points["result" + str(result['record_num'])] =  [result['description'], [result['lat'], result['lng']],
-                                    result['date'], result['numvotes'], result['abrv'], result['record_num']]
+                                    result['date'], result['numvotes'], result['abrv'], result['record_num'], labels_string]
   cursor.close()
+  labels.close()
   print(points)
   return points
 
