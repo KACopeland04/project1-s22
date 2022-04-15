@@ -1,0 +1,7 @@
+sqalchemy
+flask
+passlib
+flask_cors
+psycopg2-binary
+Jinja2
+flask_socketio
