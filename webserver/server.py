@@ -445,6 +445,44 @@ def enterdata():
       flash('Missing Fields or Invalid Input')
       return redirect('/dataentry')
 
+    northstates = []
+    southstates = []
+    eaststates = []
+    weststates = []
+
+    north = g.conn.execute("""SELECT DISTINCT abrv 
+    FROM coordinates 
+    WHERE lng > %s""", lon)
+    for s in north:
+      northstates.append(s['abrv'])
+    north.close()
+    south = g.conn.execute(""" SELECT DISTINCT abrv 
+    FROM coordinates 
+    WHERE lng < %s""", lon)
+    for s in south:
+      southstates.append(s['abrv'])
+    south.close()
+    east = g.conn.execute(""" SELECT DISTINCT abrv 
+    FROM coordinates 
+    WHERE lat >%s""", lat)
+    for s in east:
+      eaststates.append(s['abrv'])
+    east.close()
+    west = g.conn.execute(""" SELECT DISTINCT abrv 
+    FROM coordinates 
+    WHERE lat <%s""", lat)
+    for s in west:
+      weststates.append(s['abrv'])
+    west.close()
+
+    candidates = set(northstates).intersection(set(southstates),set(eaststates),set(weststates))
+    
+    print(len(candidates), list(candidates), state)
+
+    if not (len(candidates) > 0 and state in list(candidates)):
+      flash("Latitude and Longitude are not in the selected state")
+      return redirect('/dataentry')
+
     try: 
         g.conn.execute('INSERT INTO SelfReportedData (description, date, numvotes, lat, lng, abrv, username) VALUES (%s, %s, %s, %s, %s, %s, %s)', contents)
     except SQLAlchemyError as e:
