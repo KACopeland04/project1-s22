@@ -1,4 +1,4 @@
-sqalchemy
+sqlalchemy
 flask
 passlib
 flask_cors
