@@ -124,8 +124,11 @@ cursor: grab;
 }
 .logo{ 
 	position:fixed; 
+  width:5%;
+  height:5%;
 	top:0; 
 	left:0; 
+  z-index: -1;
 } 
 
 .flashes{
@@ -240,7 +243,7 @@ cursor: grab;
 <form action="/">
   <input type="submit" class="btn-home" value="Return to home"/>
 </form>
-<div id="logo"> 
-	<img src="/../images/logo.png"> 
+<div class="logo"> 
+	<img src="/static/logo.png"> 
 </div> 
 {% endblock %}
